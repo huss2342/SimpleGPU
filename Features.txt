@@ -1,0 +1,134 @@
+### INFO
+
+VHDL 1993
+Using the Cyclone II DE 2: EP2C35F672C6N 
+	It has 105 M4K blocks.
+	Each M4K block has 4,608 bits.
+	It can be configured as 4,096 x 1-bit, 2,048 x 2-bit, 1,024 x 4-bit, 512 x 9-bit, and so on.
+	It supports true dual-port, simple dual-port, and single-port RAM configurations.
+
+
+
+
+### FEATURES
+[ppu]
+	custom shift functions
+	basic ALU structure
+
+[memory_controller]
+	2 Byte wide memory with a depth of 1024 so we can store a total of 16384 bits or 2048 Bytes.
+
+	basic memory implementation to utilize dual-port RAM, which allows simultaneous read/write 
+	operations on two different addresses. This can be extremely useful in a GPU setting where 
+	one part of the system might be writing data (e.g., the PPU) while another part reads data 
+	(e.g., the VGA controller).
+	
+	write protection
+	
+	write and read activity indicators
+
+[ppu_controller]
+	The ppu_controller is the heart of your GPU. It will manage the distribution of tasks to the 
+	Pixel Processing Units (PPUs), collect results after computation, and might also manage the
+	flow of data between the memory and the PPUs.
+	
+	
+	
+	
+### IMPROVEMENTS: TODO
+
+[ppu]
+	-- 4. Comparison Operations these will return true(00001) or false(00000):
+		-- EQ, NEQ, GT, LT, GTE, LTE can be implemented but might be better suited for flag-based operations.
+
+   -- 5. Other operations specific to GPU can be added later.
+		--Clamp: Clamps a value between a minimum and maximum value.
+		--Interpolation: Linearly interpolate between two values.
+		--Dot Product: Useful in vector math for graphics.
+		--Cross Product: Useful for 3D graphics to get a perpendicular vector
+
+[memory_controller]
+	 -- Memory Initialization (reset logic)
+    PROCESS(inclock)
+    BEGIN
+        IF rising_edge(inclock) THEN
+            IF reset = '1' THEN
+                -- Code to initialize memory
+                -- This will depend on the internal structure of your RAM component.
+                -- For some components, you might need to loop through addresses and write zeros or default values.
+            END IF;
+        END IF;
+    END PROCESS;
+
+		
+		
+		
+################ ORDER OF DOING THINGS
+
+ppu_controller:
+
+    Now that you have a PPU and memory access, you can work on the control logic for the PPU.
+	 This will let you initiate operations on the PPU and manage its data flow.
+
+vga_controller:
+
+    Once you have data being processed, you'll want to see the results. 
+	 Implement the VGA controller so you can output graphics data to a display.
+
+gpu_top:
+
+    With all the components ready, you can integrate them in the top module. 
+	 This will involve connecting all the sub-modules and ensuring data and control signals are appropriately routed.
+	 
+--------------------------------------
+    Vectorized Parallel Operations:
+    The ppu_controller can indeed manage vectorized parallel operations. If you're planning on performing operations 
+	 on vectors of data, you'll distribute parts of the vectors to different processing units (PPUs) and then collect 
+	 and combine the results. This approach ensures that multiple operations can be executed simultaneously, taking 
+	 advantage of parallelism.
+
+    Playing Video in Real-time:
+    Real-time video playback on an FPGA is a complex task. Here's a simplified overview:
+        Your FPGA will need to understand the format of the video data it's receiving.
+        You'll need a decoder to decode the video data into individual frames.
+        Each frame will then be processed and sent to the VGA controller for display.
+
+    Regarding the Ethernet connection: You'll need an Ethernet IP core or module to handle Ethernet 
+	 communication. Once you receive video data via Ethernet, you can buffer it and then process it for display.
+	 This task is usually separate from the VGA controller – the VGA controller's primary role is to drive the
+	 VGA signals based on the pixel data it receives.
+
+    Given the complexity of video decoding and playback, it would be advisable to handle video as a separate 
+	 module or project phase after you've built the basic GPU functionalities.
+
+    Interface with C for Vectorized Math:
+    Yes, to interact with your FPGA from a PC or any other platform, you'd typically develop a software 
+	 application (in C or another language) that communicates with the FPGA. This application would send 
+	 data to the FPGA, instruct it to perform operations, and then retrieve the results.
+        This communication can be done over standard interfaces like USB, Ethernet, or even serial, depending
+		  on your FPGA board capabilities and the bandwidth you need.
+        You'd write a driver or use an existing one for your FPGA to facilitate this communication on the PC side.
+        Once the data is sent to the FPGA, your ppu_controller would distribute tasks to the PPU, wait for the 
+		  results, and then send them back to the PC.
+		  
+		  
+		  
+   +--------------------+      +--------------------+
+   |                    |      |                    |
+   |    C Program       +----->+    FPGA Driver     |
+   |                    |      |                    |
+   +--------------------+      +---------+----------+
+                                         |
+                                         v
+   +--------------------+      +---------+----------+
+   |                    |      |                    |
+   | Ethernet Controller+----->+    PPU Controller  |
+   |                    |      |                    |
+   +--------------------+      +---------+----------+
+                                         |
+                                         v
+   +--------------------+      +--------------------+
+   |                    |      |                    |
+   |    VGA Controller  +<---->+     Memory Ctrl    |
+   |                    |      |                    |
+   +--------------------+      +--------------------+

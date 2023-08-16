@@ -155,15 +155,7 @@ begin
 				    result := custom_sra(a, to_integer(unsigned(b)));
             
  
-        -- 4. Comparison Operations these will return true(00001) or false(00000):
-        -- EQ, NEQ, GT, LT, GTE, LTE can be implemented but might be better suited for flag-based operations.
-
-        -- 5. Other operations specific to GPU can be added later.
-				--Clamp: Clamps a value between a minimum and maximum value.
-				--Interpolation: Linearly interpolate between two values.
-				--Dot Product: Useful in vector math for graphics.
-				--Cross Product: Useful for 3D graphics to get a perpendicular vector
-
+        
 
         when others =>
             result := (others => '0');
