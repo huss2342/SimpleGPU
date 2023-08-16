@@ -1,5 +1,8 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
 entity tb_ppu is
-end tb_ppu
+end tb_ppu;
 
 architecture test of tb_ppu is
 
@@ -41,11 +44,12 @@ begin
     process
     begin
         -- Test scenarios
-		  wait 10 ns;
+		  wait for 10 ns;
 		  start <= '1';
 		  input_a <= "0000001100000000";
 		  input_b <= "0000000000000011";
 		  operation <= "00000000";
+		  wait;
     end process;
 
 end test;

@@ -10,7 +10,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 
 
-
+---------------------------- DEFINING THE ENTITY ----------------------------
 entity ppu is
     Port (
         clk          : in  STD_LOGIC;
@@ -27,8 +27,50 @@ entity ppu is
     );
 end ppu;
 
+
+---------------------------- DEFINING THE ARCHITECTURE ----------------------------
 architecture BEHAVIORAL of PPU is
 
+
+-------------- SHIFTS FUNCTIONS --------------
+
+function custom_sll(value: STD_LOGIC_VECTOR; shift_count: integer) return STD_LOGIC_VECTOR is
+    variable zeros: STD_LOGIC_VECTOR(value'length-1 downto 0) := (others => '0');
+begin
+    if shift_count >= value'length then
+        return zeros;
+    else
+        return value(value'high-shift_count downto 0) & zeros(value'length-shift_count-1 downto 0);
+    end if;
+end function custom_sll;
+
+function custom_srl(value: STD_LOGIC_VECTOR; shift_count: integer) return STD_LOGIC_VECTOR is
+    variable zeros: STD_LOGIC_VECTOR(value'length-1 downto 0) := (others => '0');
+begin
+    if shift_count >= value'length then
+        return zeros;
+    else
+        return zeros(shift_count-1 downto 0) & value(value'high downto shift_count);
+    end if;
+end function custom_srl;
+
+function custom_sla(value: STD_LOGIC_VECTOR; shift_count: integer) return STD_LOGIC_VECTOR is
+begin
+    return custom_sll(value, shift_count);  -- Arithmetic and logical left shifts are the same
+end function custom_sla;
+
+function custom_sra(value: STD_LOGIC_VECTOR; shift_count: integer) return STD_LOGIC_VECTOR is
+    variable msb_replicate: STD_LOGIC_VECTOR(shift_count-1 downto 0) := (others => value(value'high));
+begin
+    if shift_count >= value'length then
+        return msb_replicate;
+    else
+        return msb_replicate & value(value'high downto shift_count);
+    end if;
+end function custom_sra;
+
+
+-------------- ALU OPERATIONS --------------
 function alu_op(op: STD_LOGIC_VECTOR; a: STD_LOGIC_VECTOR; b: STD_LOGIC_VECTOR) return STD_LOGIC_VECTOR is
     variable result : STD_LOGIC_VECTOR(15 downto 0);
 begin
@@ -41,8 +83,6 @@ begin
             result := STD_LOGIC_VECTOR(unsigned(a) - unsigned(b));
         when 3 => -- Multiplication
             result := STD_LOGIC_VECTOR(unsigned(a) * unsigned(b));
-		  when 4 => -- POWER
-				result := STD_LOGIC_VECTOR(unsigned(a) ** unsigned(b));
         when 5 => -- Division (Ensure b is not 0)
             if b /= "0000000000000000" then
                 result := STD_LOGIC_VECTOR(unsigned(a) / unsigned(b));
@@ -50,49 +90,39 @@ begin
                 result := (others => '0');
             end if;	
         when 6 => -- Modulus
-            if b /= "0000000000000000" then
+            if b /= STD_LOGIC_VECTOR(to_unsigned(0, b'length)) then
                 result := STD_LOGIC_VECTOR(unsigned(a) mod unsigned(b));
             else
                 result := (others => '0');
             end if;
         when 7 => -- Increment (Only considers a)
-            result := a + 1;
+            result := STD_LOGIC_VECTOR(unsigned(a) + 1);
         when 8 => -- Decrement (Only considers a)
-            result := a - 1;
-
+            result := STD_LOGIC_VECTOR(unsigned(a) - 1);
+				
         -- 2. Logical Operations:
         when 9 => -- AND
             result := a and b;
-        when "00001000" => -- OR
+        when 10 => -- OR
             result := a or b;
-        when 10 => -- NOT (Only considers a)
+        when 11 => -- NOT (Only considers a)
             result := not a;
-        when "00001010" => -- XOR
+        when 12 => -- XOR
             result := a xor b;
-        when 11 => -- NAND
+        when 13 => -- NAND
             result := not (a and b);
-        when 12 => -- NOR
+        when 14 => -- NOR
             result := not (a or b);
 
         -- 3. Bitwise Shifts and Rotates:
-        when 13 => -- Shift Left Logically
-            result := a sll to_integer(unsigned(b));
-        when 14 => -- Shift Right Logically
-            result := a srl to_integer(unsigned(b));
-        when 15 => -- Shift Left Arithmetically
-				if(to_integer(unsigned(b)) > 15) then
-					report "value of b is larger than the bits of a";
-					result := 0;
-				else
-					result := a sla to_integer(unsigned(b));
-				end if;
-		  when 16 => -- Shift Right Arithmetically
-				if(to_integer(unsigned(b)) > 15) then
-					report "value of b is larger than the bits of a";
-					result := 0;
-				else
-					result := a sra to_integer(unsigned(b));
-				end if;
+        when 15 => -- Shift Left Logically
+				    result := custom_sll(a, to_integer(unsigned(b)));
+		    when 16 => -- Shift Right Logically
+				    result := custom_srl(a, to_integer(unsigned(b)));
+		    when 17 => -- Shift Left Arithmetically
+				    result := custom_sla(a, to_integer(unsigned(b)));
+		    when 18 => -- Shift Right Arithmetically
+				    result := custom_sra(a, to_integer(unsigned(b)));
             
  
         -- 4. Comparison Operations these will return true(00001) or false(00000):
@@ -107,11 +137,12 @@ begin
 
         when others =>
             result := (others => '0');
+				
     end case;
     return result;
 end function alu_op;
 
-begin
+begin -- THE BEGIN FOR ARCHITECTURE
 
     process(clk, reset)
     begin
