@@ -1,0 +1,12 @@
+# Ignore everything by default
+/*
+/db/
+
+!/TestBenches/
+!/TestBenches/*
+!/TestBenches/**/*
+
+!*.vhd
+!*.sdc
+!DE2_pin_assignments.csv
+!*.*
