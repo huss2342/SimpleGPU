@@ -1,5 +1,5 @@
 Flow report for SimpleGPU
-Tue Aug 15 22:41:16 2023
+Tue Aug 15 22:46:05 2023
 Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
 
 
@@ -40,22 +40,22 @@ applicable agreement for further details.
 +--------------------------------------------------------------------------------------+
 ; Flow Summary                                                                         ;
 +------------------------------------+-------------------------------------------------+
-; Flow Status                        ; Successful - Tue Aug 15 22:41:16 2023           ;
+; Flow Status                        ; Successful - Tue Aug 15 22:46:05 2023           ;
 ; Quartus II 64-Bit Version          ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
 ; Revision Name                      ; SimpleGPU                                       ;
 ; Top-level Entity Name              ; ppu                                             ;
 ; Family                             ; Cyclone II                                      ;
 ; Device                             ; EP2C35F672C6                                    ;
 ; Timing Models                      ; Final                                           ;
-; Total logic elements               ; 1,682                                           ;
-;     Total combinational functions  ; 1,681                                           ;
-;     Dedicated logic registers      ; 17                                              ;
+; Total logic elements               ; 1,682 / 33,216 ( 5 % )                          ;
+;     Total combinational functions  ; 1,681 / 33,216 ( 5 % )                          ;
+;     Dedicated logic registers      ; 17 / 33,216 ( < 1 % )                           ;
 ; Total registers                    ; 17                                              ;
-; Total pins                         ; 60                                              ;
+; Total pins                         ; 60 / 475 ( 13 % )                               ;
 ; Total virtual pins                 ; 0                                               ;
-; Total memory bits                  ; 0                                               ;
-; Embedded Multiplier 9-bit elements ; 2                                               ;
-; Total PLLs                         ; 0                                               ;
+; Total memory bits                  ; 0 / 483,840 ( 0 % )                             ;
+; Embedded Multiplier 9-bit elements ; 2 / 70 ( 3 % )                                  ;
+; Total PLLs                         ; 0 / 4 ( 0 % )                                   ;
 +------------------------------------+-------------------------------------------------+
 
 
@@ -64,7 +64,7 @@ applicable agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 08/15/2023 22:41:11 ;
+; Start date & time ; 08/15/2023 22:45:48 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; SimpleGPU           ;
 +-------------------+---------------------+
@@ -75,7 +75,7 @@ applicable agreement for further details.
 +-------------------------------------+--------------------------------+---------------+-------------+----------------+
 ; Assignment Name                     ; Value                          ; Default Value ; Entity Name ; Section Id     ;
 +-------------------------------------+--------------------------------+---------------+-------------+----------------+
-; COMPILER_SIGNATURE_ID               ; 62489529074604.169215727131796 ; --            ; --          ; --             ;
+; COMPILER_SIGNATURE_ID               ; 62489529074604.169215754821700 ; --            ; --          ; --             ;
 ; EDA_OUTPUT_DATA_FORMAT              ; Vhdl                           ; --            ; --          ; eda_simulation ;
 ; EDA_SIMULATION_TOOL                 ; ModelSim-Altera (VHDL)         ; <None>        ; --          ; --             ;
 ; MAX_CORE_JUNCTION_TEMP              ; 85                             ; --            ; --          ; --             ;
@@ -88,29 +88,41 @@ applicable agreement for further details.
 +-------------------------------------+--------------------------------+---------------+-------------+----------------+
 
 
-+--------------------------------------------------------------------------------------------------------------------------+
-; Flow Elapsed Time                                                                                                        ;
-+----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
-+----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:00:05     ; 1.0                     ; 4652 MB             ; 00:00:05                           ;
-; Total                ; 00:00:05     ; --                      ; --                  ; 00:00:05                           ;
-+----------------------+--------------+-------------------------+---------------------+------------------------------------+
++-------------------------------------------------------------------------------------------------------------------------------+
+; Flow Elapsed Time                                                                                                             ;
++---------------------------+--------------+-------------------------+---------------------+------------------------------------+
+; Module Name               ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
++---------------------------+--------------+-------------------------+---------------------+------------------------------------+
+; Analysis & Synthesis      ; 00:00:05     ; 1.0                     ; 4664 MB             ; 00:00:05                           ;
+; Fitter                    ; 00:00:05     ; 1.0                     ; 4893 MB             ; 00:00:06                           ;
+; Assembler                 ; 00:00:02     ; 1.0                     ; 4566 MB             ; 00:00:01                           ;
+; TimeQuest Timing Analyzer ; 00:00:01     ; 1.0                     ; 4562 MB             ; 00:00:01                           ;
+; EDA Netlist Writer        ; 00:00:01     ; 1.0                     ; 4529 MB             ; 00:00:01                           ;
+; Total                     ; 00:00:14     ; --                      ; --                  ; 00:00:14                           ;
++---------------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
-+-----------------------------------------------------------------------------------+
-; Flow OS Summary                                                                   ;
-+----------------------+------------------+-----------+------------+----------------+
-; Module Name          ; Machine Hostname ; OS Name   ; OS Version ; Processor type ;
-+----------------------+------------------+-----------+------------+----------------+
-; Analysis & Synthesis ; DESKTOP-TBLU0CF  ; Windows 7 ; 6.2        ; x86_64         ;
-+----------------------+------------------+-----------+------------+----------------+
++----------------------------------------------------------------------------------------+
+; Flow OS Summary                                                                        ;
++---------------------------+------------------+-----------+------------+----------------+
+; Module Name               ; Machine Hostname ; OS Name   ; OS Version ; Processor type ;
++---------------------------+------------------+-----------+------------+----------------+
+; Analysis & Synthesis      ; DESKTOP-TBLU0CF  ; Windows 7 ; 6.2        ; x86_64         ;
+; Fitter                    ; DESKTOP-TBLU0CF  ; Windows 7 ; 6.2        ; x86_64         ;
+; Assembler                 ; DESKTOP-TBLU0CF  ; Windows 7 ; 6.2        ; x86_64         ;
+; TimeQuest Timing Analyzer ; DESKTOP-TBLU0CF  ; Windows 7 ; 6.2        ; x86_64         ;
+; EDA Netlist Writer        ; DESKTOP-TBLU0CF  ; Windows 7 ; 6.2        ; x86_64         ;
++---------------------------+------------------+-----------+------------+----------------+
 
 
 ------------
 ; Flow Log ;
 ------------
 quartus_map --read_settings_files=on --write_settings_files=off SimpleGPU -c SimpleGPU
+quartus_fit --read_settings_files=off --write_settings_files=off SimpleGPU -c SimpleGPU
+quartus_asm --read_settings_files=off --write_settings_files=off SimpleGPU -c SimpleGPU
+quartus_sta SimpleGPU -c SimpleGPU
+quartus_eda --read_settings_files=off --write_settings_files=off SimpleGPU -c SimpleGPU
 
 
 
