@@ -26,7 +26,7 @@ signal input_a, input_b, output_data : std_logic_vector(15 downto 0) := (others 
 
 begin
 	 -- 5NS CLOCK
-    clk <= not clk after 5 ns;
+    clk <= not clk after 20 ns;
 
     -- INTERNAL CONNECTIONS
 	 UUT: ppu port map (
@@ -41,15 +41,20 @@ begin
     );
 	 
 	 
-    process
-    begin
-        -- Test scenarios
-		  wait for 10 ns;
-		  start <= '1';
-		  input_a <= "0000001100000000";
-		  input_b <= "0000000000000011";
-		  operation <= "00000000";
-		  wait;
-    end process;
+process(clk)
+    variable count: integer := 0;
+begin
+    if rising_edge(clk) then
+        count := count + 1;
+
+        if count = 1 then
+            start <= '1';
+            input_a <= "0000001100000000";
+            input_b <= "0000000000000011";
+            operation <= "00000000";
+        end if;
+    end if;
+end process;
+
 
 end test;

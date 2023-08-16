@@ -122,7 +122,7 @@ begin
 		    when 17 => -- Shift Left Arithmetically
 				    result := custom_sla(a, to_integer(unsigned(b)));
 		    when 18 => -- Shift Right Arithmetically
-				    esult := custom_sra(a, to_integer(unsigned(b)));
+				    result := custom_sra(a, to_integer(unsigned(b)));
             
  
         -- 4. Comparison Operations these will return true(00001) or false(00000):
