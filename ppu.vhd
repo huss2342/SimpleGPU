@@ -6,20 +6,17 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+
 
 entity ppu is
     Port (
         clk          : in  STD_LOGIC;
         reset        : in  STD_LOGIC;
         
-		  operation    : in  STD_LOGIC_VECTOR(3 downto 0); -- Assuming 4-bit control for operations
+		  operation    : in  STD_LOGIC_VECTOR(7 downto 0); -- Assuming 8-bit control for operations
         
 		  input_a      : in  STD_LOGIC_VECTOR(15 downto 0); -- Assuming 16-bit operands
         input_b      : in  STD_LOGIC_VECTOR(15 downto 0);
@@ -30,60 +27,83 @@ entity ppu is
     );
 end ppu;
 
+architecture BEHAVIORAL of PPU is
+
 function alu_op(op: STD_LOGIC_VECTOR; a: STD_LOGIC_VECTOR; b: STD_LOGIC_VECTOR) return STD_LOGIC_VECTOR is
     variable result : STD_LOGIC_VECTOR(15 downto 0);
 begin
-    case op is
+    case to_integer(unsigned(op)) is
 	 
         -- 1. Arithmetic Operations:
-        when "0000" => -- Addition
-            result := a + b;
-        when "0001" => -- Subtraction
-            result := a - b;
-        when "0010" => -- Multiplication
-            result := a * b;
-        when "0011" => -- Division (Ensure b is not 0)
+        when 1 => -- Addition
+            result := STD_LOGIC_VECTOR(unsigned(a) + unsigned(b));
+        when 2 => -- Subtraction
+            result := STD_LOGIC_VECTOR(unsigned(a) - unsigned(b));
+        when 3 => -- Multiplication
+            result := STD_LOGIC_VECTOR(unsigned(a) * unsigned(b));
+		  when 4 => -- POWER
+				result := STD_LOGIC_VECTOR(unsigned(a) ** unsigned(b));
+        when 5 => -- Division (Ensure b is not 0)
             if b /= "0000000000000000" then
-                result := a / b;
+                result := STD_LOGIC_VECTOR(unsigned(a) / unsigned(b));
             else
                 result := (others => '0');
             end if;	
-        when "0100" => -- Modulus
+        when 6 => -- Modulus
             if b /= "0000000000000000" then
-                result := a mod b;
+                result := STD_LOGIC_VECTOR(unsigned(a) mod unsigned(b));
             else
                 result := (others => '0');
             end if;
-        when "0101" => -- Increment (Only considers a)
+        when 7 => -- Increment (Only considers a)
             result := a + 1;
-        when "0110" => -- Decrement (Only considers a)
+        when 8 => -- Decrement (Only considers a)
             result := a - 1;
 
         -- 2. Logical Operations:
-        when "0111" => -- AND
+        when 9 => -- AND
             result := a and b;
-        when "1000" => -- OR
+        when "00001000" => -- OR
             result := a or b;
-        when "1001" => -- NOT (Only considers a)
+        when 10 => -- NOT (Only considers a)
             result := not a;
-        when "1010" => -- XOR
+        when "00001010" => -- XOR
             result := a xor b;
-        when "1011" => -- NAND
+        when 11 => -- NAND
             result := not (a and b);
-        when "1100" => -- NOR
+        when 12 => -- NOR
             result := not (a or b);
 
         -- 3. Bitwise Shifts and Rotates:
-        when "1101" => -- Shift Left
-            result := a sll 1;
-        when "1110" => -- Shift Right
-            result := a srl 1;
-        -- ... Additional operations like rotates can be added ...
-
-        -- 4. Comparison Operations (You may need to adjust return types or use flags):
+        when 13 => -- Shift Left Logically
+            result := a sll to_integer(unsigned(b));
+        when 14 => -- Shift Right Logically
+            result := a srl to_integer(unsigned(b));
+        when 15 => -- Shift Left Arithmetically
+				if(to_integer(unsigned(b)) > 15) then
+					report "value of b is larger than the bits of a";
+					result := 0;
+				else
+					result := a sla to_integer(unsigned(b));
+				end if;
+		  when 16 => -- Shift Right Arithmetically
+				if(to_integer(unsigned(b)) > 15) then
+					report "value of b is larger than the bits of a";
+					result := 0;
+				else
+					result := a sra to_integer(unsigned(b));
+				end if;
+            
+ 
+        -- 4. Comparison Operations these will return true(00001) or false(00000):
         -- EQ, NEQ, GT, LT, GTE, LTE can be implemented but might be better suited for flag-based operations.
 
         -- 5. Other operations specific to GPU can be added later.
+				--Clamp: Clamps a value between a minimum and maximum value.
+				--Interpolation: Linearly interpolate between two values.
+				--Dot Product: Useful in vector math for graphics.
+				--Cross Product: Useful for 3D graphics to get a perpendicular vector
+
 
         when others =>
             result := (others => '0');
@@ -95,7 +115,7 @@ begin
 
     process(clk, reset)
     begin
-        if reset = '1' then
+        if reset = '0' then
             output_data <= (others => '0');
             done_signal <= '0';
         elsif rising_edge(clk) then
