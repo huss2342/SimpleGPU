@@ -487,4 +487,5 @@ set_global_assignment -name VHDL_FILE ppu_controller.vhd
 set_global_assignment -name VHDL_FILE memory_controller.vhd
 set_global_assignment -name VHDL_FILE gpu_top.vhd
 set_global_assignment -name VHDL_FILE ppu.vhd
+set_global_assignment -name VHDL_FILE vpga_controller.vhd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
