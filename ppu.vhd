@@ -1,4 +1,5 @@
-------------------------------
-
-
-------------------------------
+------------------------------------------------------------------------------------------------
+--- This module will contain the basic ALU design.
+--- It will take control signals to specify which operation to perform.
+--- It will have inputs and outputs for data.
+------------------------------------------------------------------------------------------------

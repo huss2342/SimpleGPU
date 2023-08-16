@@ -1,0 +1,5 @@
+------------------------------------------------------------------------------------------------
+--- This module will manage the distribution of tasks to the PPUs.
+--- It will also handle collecting results from the PPUs after computation.
+--- We can have a simple FIFO or buffer system here to queue tasks
+------------------------------------------------------------------------------------------------

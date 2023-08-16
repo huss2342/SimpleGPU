@@ -1,0 +1,5 @@
+------------------------------------------------------------------------------------------------
+--- This module will stitch everything together.
+--- It will connect the PPU Controller, Memory Controller, and VGA Display Controller.
+--- It's the main module you'll synthesize and deploy to the FPGA.
+------------------------------------------------------------------------------------------------
