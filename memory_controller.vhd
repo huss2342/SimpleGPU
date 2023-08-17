@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------------------------
+----------------------------------MEMORY_CONTROLLER---------------------------------------------
 --- This module will handle read/write operations to/from the VRAM.
 --- It will interface with the FPGA's on-chip memory.
 ------------------------------------------------------------------------------------------------
@@ -30,8 +30,8 @@ END memory_controller;
 ARCHITECTURE behavior OF memory_controller IS
     -- Signal declarations for memory_controller
     
-    SIGNAL local_wren_a : STD_LOGIC;
-    SIGNAL local_wren_b : STD_LOGIC;
+    SIGNAL local_wren_a : STD_LOGIC := '0';
+    SIGNAL local_wren_b : STD_LOGIC := '0';
 
     -- RAM instantiation
     COMPONENT ram
@@ -53,6 +53,26 @@ ARCHITECTURE behavior OF memory_controller IS
     CONSTANT MAX_ADDRESS : STD_LOGIC_VECTOR(9 DOWNTO 0) := "1111111111";
 
 BEGIN
+
+		-- Check addresses and set local write enables
+		PROCESS(inclock)
+		BEGIN
+			 IF rising_edge(inclock) THEN
+				  IF address_a > MAX_ADDRESS THEN
+						local_wren_a <= '0';  -- Disable write to RAM for address_a
+				  ELSE
+						local_wren_a <= wren_a;
+				  END IF;
+				  
+				  IF address_b > MAX_ADDRESS THEN
+						local_wren_b <= '0';  -- Disable write to RAM for address_b
+				  ELSE
+						local_wren_b <= wren_b;
+				  END IF;
+			 END IF;
+		END PROCESS;
+
+
     -- RAM instantiation in memory_controller architecture
     ram_instance: ram
         PORT MAP(
@@ -68,15 +88,6 @@ BEGIN
             q_b        => q_b
         );
 
-    -- Address range check logic
-    PROCESS(inclock)
-    BEGIN
-        IF rising_edge(inclock) THEN
-            IF address_a > MAX_ADDRESS OR address_b > MAX_ADDRESS THEN
-                -- You can add error handling here, like setting an error flag or ignoring the request
-            END IF;
-        END IF;
-    END PROCESS;
 
     -- Write protection logic
     local_wren_a <= '0' WHEN write_protect = '1' ELSE wren_a;
@@ -85,8 +96,6 @@ BEGIN
     -- Activity indicators
     read_activity <= '1' WHEN (wren_a = '0' OR wren_b = '0') ELSE '0';
     write_activity <= '1' WHEN (wren_a = '1' OR wren_b = '1') ELSE '0';
-
-   
 
 	 
 

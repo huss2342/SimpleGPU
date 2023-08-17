@@ -8,24 +8,30 @@ END tb_ppu_controller;
 ARCHITECTURE behavior OF tb_ppu_controller IS 
 
 COMPONENT ppu_controller
-	PORT(
-		 clk           : IN  STD_LOGIC;
-		 opcode        : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
-		 start         : IN  STD_LOGIC;
-		 reset         : IN  STD_LOGIC;
-		 address_a     : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
-		 address_b     : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
-		 data_a        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-		 data_b        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-		 mem_wren_a    : OUT STD_LOGIC;
-		 mem_wren_b    : OUT STD_LOGIC;
-		 q_a           : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
-		 q_b           : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
-		 ppu_a         : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-		 ppu_b         : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-		 ppu_operation : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
-		 ppu_result    : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-		 done          : OUT STD_LOGIC
+    PORT(
+	 clk 			  : IN  STD_LOGIC;
+    opcode       : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
+    start        : IN  STD_LOGIC;
+    reset        : IN  STD_LOGIC;
+
+    -- Memory controller interface
+    address_a    : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
+    address_b    : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
+    data_a       : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+    data_b       : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+    mem_wren_a   : OUT STD_LOGIC;
+    mem_wren_b   : OUT STD_LOGIC;
+    q_a          : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
+    q_b          : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
+
+    -- PPU interface
+    ppu_a        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+    ppu_b        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+    ppu_operation: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+    ppu_enable   : OUT STD_LOGIC;
+    ppu_result   : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
+
+    done         : OUT STD_LOGIC
 	);
 END COMPONENT;
   
@@ -34,8 +40,7 @@ signal opcode : std_logic_vector(7 downto 0) := "00000000";
 signal address_a, address_b : std_logic_vector(9 downto 0);
 signal data_a, data_b, q_a, q_b : std_logic_vector(15 downto 0);
 signal mem_wren_a, mem_wren_b, ppu_enable : std_logic;
-signal ppu_a, ppu_b, ppu_result : std_logic_vector(15 downto 0);
-signal ppu_operation : std_logic_vector(7 downto 0);
+signal ppu_a, ppu_b, ppu_operation, ppu_result : std_logic_vector(15 downto 0);
 
 -- Signals for memory mock-up
 type memory_array_type is array(0 to 2047) of std_logic_vector(15 downto 0);
@@ -66,6 +71,7 @@ BEGIN
 		 ppu_a         => ppu_a,
 		 ppu_b         => ppu_b,
 		 ppu_operation => ppu_operation,
+		 ppu_enable    => ppu_enable,
 		 ppu_result    => ppu_result,
 
 		 done          => done

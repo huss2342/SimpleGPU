@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------------------------
+------------------------------------------PPU.VHD-----------------------------------------------
 --- This module will contain the basic ALU design.
 --- It will take control signals to specify which operation to perform.
 --- It will have inputs and outputs for data.
@@ -16,9 +16,9 @@ entity ppu is
       clk          : in  STD_LOGIC;
       reset        : in  STD_LOGIC;
         
-		operation    : in  STD_LOGIC_VECTOR(7 downto 0); -- Assuming 8-bit control for operations
+		operation    : in  STD_LOGIC_VECTOR(7 downto 0); 
         
-		input_a      : in  STD_LOGIC_VECTOR(15 downto 0); -- Assuming 16-bit operands
+		input_a      : in  STD_LOGIC_VECTOR(15 downto 0);
       input_b      : in  STD_LOGIC_VECTOR(15 downto 0);
       output_data  : out STD_LOGIC_VECTOR(15 downto 0);
 		  
