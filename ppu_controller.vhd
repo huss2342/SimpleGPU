@@ -6,9 +6,12 @@
 
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
+USE iee.std_LOGIC_unsigned.all;
 
 ENTITY ppu_controller IS
 PORT(
+	 opcode 		  : IN STD_LOGIC_VECTOR(7 DOWNTO 0); -- Instruction opcode
+	 
     clk          : IN  STD_LOGIC;
     reset        : IN  STD_LOGIC;  -- Asynchronous reset
     start_op     : IN  STD_LOGIC;  -- Signal to start an operation
