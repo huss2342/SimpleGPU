@@ -42,8 +42,8 @@ USE altera_mf.all;
 ENTITY ram IS
 	PORT
 	(
-		address_a		: IN STD_LOGIC_VECTOR (9 DOWNTO 0);
-		address_b		: IN STD_LOGIC_VECTOR (9 DOWNTO 0);
+		address_a		: IN STD_LOGIC_VECTOR (11 DOWNTO 0);
+		address_b		: IN STD_LOGIC_VECTOR (11 DOWNTO 0);
 		data_a		: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
 		data_b		: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
 		inclock		: IN STD_LOGIC  := '1';
@@ -93,12 +93,12 @@ ARCHITECTURE SYN OF ram IS
 	PORT (
 			clock0	: IN STD_LOGIC ;
 			wren_a	: IN STD_LOGIC ;
-			address_b	: IN STD_LOGIC_VECTOR (9 DOWNTO 0);
+			address_b	: IN STD_LOGIC_VECTOR (11 DOWNTO 0);
 			clock1	: IN STD_LOGIC ;
 			data_b	: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
 			q_a	: OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
 			wren_b	: IN STD_LOGIC ;
-			address_a	: IN STD_LOGIC_VECTOR (9 DOWNTO 0);
+			address_a	: IN STD_LOGIC_VECTOR (11 DOWNTO 0);
 			data_a	: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
 			q_b	: OUT STD_LOGIC_VECTOR (15 DOWNTO 0)
 	);
@@ -118,8 +118,8 @@ BEGIN
 		indata_reg_b => "CLOCK0",
 		intended_device_family => "Cyclone II",
 		lpm_type => "altsyncram",
-		numwords_a => 1024,
-		numwords_b => 1024,
+		numwords_a => 3072,
+		numwords_b => 3072,
 		operation_mode => "BIDIR_DUAL_PORT",
 		outdata_aclr_a => "NONE",
 		outdata_aclr_b => "NONE",
@@ -127,8 +127,8 @@ BEGIN
 		outdata_reg_b => "CLOCK1",
 		power_up_uninitialized => "FALSE",
 		read_during_write_mode_mixed_ports => "DONT_CARE",
-		widthad_a => 10,
-		widthad_b => 10,
+		widthad_a => 12,
+		widthad_b => 12,
 		width_a => 16,
 		width_b => 16,
 		width_byteena_a => 1,
@@ -185,8 +185,8 @@ END SYN;
 -- Retrieval info: PRIVATE: JTAG_ENABLED NUMERIC "0"
 -- Retrieval info: PRIVATE: JTAG_ID STRING "NONE"
 -- Retrieval info: PRIVATE: MAXIMUM_DEPTH NUMERIC "0"
--- Retrieval info: PRIVATE: MEMSIZE NUMERIC "16384"
--- Retrieval info: PRIVATE: MEM_IN_BITS NUMERIC "1"
+-- Retrieval info: PRIVATE: MEMSIZE NUMERIC "49152"
+-- Retrieval info: PRIVATE: MEM_IN_BITS NUMERIC "0"
 -- Retrieval info: PRIVATE: MIFfilename STRING ""
 -- Retrieval info: PRIVATE: OPERATION_MODE NUMERIC "3"
 -- Retrieval info: PRIVATE: OUTDATA_ACLR_B NUMERIC "0"
@@ -223,8 +223,8 @@ END SYN;
 -- Retrieval info: CONSTANT: INDATA_REG_B STRING "CLOCK0"
 -- Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone II"
 -- Retrieval info: CONSTANT: LPM_TYPE STRING "altsyncram"
--- Retrieval info: CONSTANT: NUMWORDS_A NUMERIC "1024"
--- Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "1024"
+-- Retrieval info: CONSTANT: NUMWORDS_A NUMERIC "3072"
+-- Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "3072"
 -- Retrieval info: CONSTANT: OPERATION_MODE STRING "BIDIR_DUAL_PORT"
 -- Retrieval info: CONSTANT: OUTDATA_ACLR_A STRING "NONE"
 -- Retrieval info: CONSTANT: OUTDATA_ACLR_B STRING "NONE"
@@ -232,15 +232,15 @@ END SYN;
 -- Retrieval info: CONSTANT: OUTDATA_REG_B STRING "CLOCK1"
 -- Retrieval info: CONSTANT: POWER_UP_UNINITIALIZED STRING "FALSE"
 -- Retrieval info: CONSTANT: READ_DURING_WRITE_MODE_MIXED_PORTS STRING "DONT_CARE"
--- Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "10"
--- Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "10"
+-- Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "12"
+-- Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "12"
 -- Retrieval info: CONSTANT: WIDTH_A NUMERIC "16"
 -- Retrieval info: CONSTANT: WIDTH_B NUMERIC "16"
 -- Retrieval info: CONSTANT: WIDTH_BYTEENA_A NUMERIC "1"
 -- Retrieval info: CONSTANT: WIDTH_BYTEENA_B NUMERIC "1"
 -- Retrieval info: CONSTANT: WRCONTROL_WRADDRESS_REG_B STRING "CLOCK0"
--- Retrieval info: USED_PORT: address_a 0 0 10 0 INPUT NODEFVAL "address_a[9..0]"
--- Retrieval info: USED_PORT: address_b 0 0 10 0 INPUT NODEFVAL "address_b[9..0]"
+-- Retrieval info: USED_PORT: address_a 0 0 12 0 INPUT NODEFVAL "address_a[11..0]"
+-- Retrieval info: USED_PORT: address_b 0 0 12 0 INPUT NODEFVAL "address_b[11..0]"
 -- Retrieval info: USED_PORT: data_a 0 0 16 0 INPUT NODEFVAL "data_a[15..0]"
 -- Retrieval info: USED_PORT: data_b 0 0 16 0 INPUT NODEFVAL "data_b[15..0]"
 -- Retrieval info: USED_PORT: inclock 0 0 0 0 INPUT VCC "inclock"
@@ -249,8 +249,8 @@ END SYN;
 -- Retrieval info: USED_PORT: q_b 0 0 16 0 OUTPUT NODEFVAL "q_b[15..0]"
 -- Retrieval info: USED_PORT: wren_a 0 0 0 0 INPUT GND "wren_a"
 -- Retrieval info: USED_PORT: wren_b 0 0 0 0 INPUT GND "wren_b"
--- Retrieval info: CONNECT: @address_a 0 0 10 0 address_a 0 0 10 0
--- Retrieval info: CONNECT: @address_b 0 0 10 0 address_b 0 0 10 0
+-- Retrieval info: CONNECT: @address_a 0 0 12 0 address_a 0 0 12 0
+-- Retrieval info: CONNECT: @address_b 0 0 12 0 address_b 0 0 12 0
 -- Retrieval info: CONNECT: @clock0 0 0 0 0 inclock 0 0 0 0
 -- Retrieval info: CONNECT: @clock1 0 0 0 0 outclock 0 0 0 0
 -- Retrieval info: CONNECT: @data_a 0 0 16 0 data_a 0 0 16 0

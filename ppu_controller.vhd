@@ -37,7 +37,8 @@ ARCHITECTURE behavior OF ppu_controller IS
     TYPE state_type IS (IDLE, READ_FROM_MEM, COMPUTE, WRITE_TO_MEM, COMPLETED);
     SIGNAL current_state, next_state: state_type := IDLE;
 	 
-	 CONSTANT ARRAY_DEPTH : INTEGER := 1024;
+	 CONSTANT ARRAY_DEPTH : INTEGER := 1536; -- Corresponds to 3KB with 16-bit words
+	 
     SIGNAL index_a : INTEGER RANGE 0 TO ARRAY_DEPTH - 1 := 0;        -- Range for array A
 	 SIGNAL index_b : INTEGER RANGE 0 TO ARRAY_DEPTH - 1 := ARRAY_DEPTH - 1; -- Range for array B
   

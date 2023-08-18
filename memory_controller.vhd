@@ -11,8 +11,8 @@ USE altera_mf.all;
 
 ENTITY memory_controller IS
 PORT(
-    address_a     : IN STD_LOGIC_VECTOR (9 DOWNTO 0);
-    address_b     : IN STD_LOGIC_VECTOR (9 DOWNTO 0);
+    address_a     : IN STD_LOGIC_VECTOR (11 DOWNTO 0);
+    address_b     : IN STD_LOGIC_VECTOR (11 DOWNTO 0);
     data_a        : IN STD_LOGIC_VECTOR (15 DOWNTO 0);
     data_b        : IN STD_LOGIC_VECTOR (15 DOWNTO 0);
     inclock       : IN STD_LOGIC;
@@ -36,8 +36,8 @@ ARCHITECTURE behavior OF memory_controller IS
 	 -- RAM instantiation
     COMPONENT ram
         PORT(
-            address_a     : IN STD_LOGIC_VECTOR (9 DOWNTO 0);
-            address_b     : IN STD_LOGIC_VECTOR (9 DOWNTO 0);
+            address_a     : IN STD_LOGIC_VECTOR (11 DOWNTO 0);
+            address_b     : IN STD_LOGIC_VECTOR (11 DOWNTO 0);
             data_a        : IN STD_LOGIC_VECTOR (15 DOWNTO 0);
             data_b        : IN STD_LOGIC_VECTOR (15 DOWNTO 0);
             inclock       : IN STD_LOGIC;
