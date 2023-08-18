@@ -17,7 +17,7 @@ ARCHITECTURE behavior OF tb_memory_controller IS
     SIGNAL wren_a         : STD_LOGIC := '0';
     SIGNAL wren_b         : STD_LOGIC := '0';
     SIGNAL write_protect  : STD_LOGIC := '0';
-    SIGNAL reset          : STD_LOGIC := '0';
+    SIGNAL reset          : STD_LOGIC := '1';
     SIGNAL q_a            : STD_LOGIC_VECTOR (15 DOWNTO 0);
     SIGNAL q_b            : STD_LOGIC_VECTOR (15 DOWNTO 0);
     SIGNAL read_activity  : STD_LOGIC;
@@ -56,17 +56,27 @@ BEGIN
     PROCESS
     BEGIN
         -- Reset the memory_controller
-        reset <= '1'; wait for 10 ns;
         reset <= '0'; wait for 10 ns;
+        reset <= '1'; wait for 10 ns;
         
-        -- Write data to memory
+        -- Write data to memory for address_a
         address_a <= "0000000001";
         data_a <= "0000000000000001";
         wren_a <= '1'; wait for 10 ns;
         wren_a <= '0'; wait for 10 ns;
 
-        -- Read data from memory
+        -- Read data from memory for address_a
         address_a <= "0000000001";
+        wait for 10 ns;
+
+        -- Write data to memory for address_b
+        address_b <= "0000000010";
+        data_b <= "0000000000000010";
+        wren_b <= '1'; wait for 10 ns;
+        wren_b <= '0'; wait for 10 ns;
+
+        -- Read data from memory for address_b
+        address_b <= "0000000010";
         wait for 10 ns;
 
         -- Additional test cases and assertions can be added here

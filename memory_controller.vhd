@@ -31,8 +31,9 @@ END memory_controller;
 ARCHITECTURE behavior OF memory_controller IS
 	SIGNAL local_wren_a : STD_LOGIC;
 	SIGNAL local_wren_b : STD_LOGIC;
-
-    -- RAM instantiation
+   --SIGNAL last_wren_a : STD_LOGIC := '1'; -- Declare the signal here and initialize to '1'
+    
+	 -- RAM instantiation
     COMPONENT ram
         PORT(
             address_a     : IN STD_LOGIC_VECTOR (9 DOWNTO 0);
@@ -54,9 +55,12 @@ ARCHITECTURE behavior OF memory_controller IS
 BEGIN
 
 		-- Check addresses and set local write enables
-		PROCESS(inclock)
+		PROCESS(inclock,reset)
 		BEGIN
-			 IF rising_edge(inclock) THEN
+			 IF reset = '0' THEN
+				local_wren_a <= '0';
+				local_wren_b <= '0';
+			 ELSIF rising_edge(inclock) THEN
 				  -- Check for address_a validity
 				  IF unsigned(address_a) > unsigned(MAX_ADDRESS) THEN
 						local_wren_a <= '0';  -- Disable write to RAM for address_a
@@ -89,9 +93,19 @@ BEGIN
 			  q_b        => q_b
 		 );
 
-    -- Activity indicators
-    read_activity <= '1' WHEN (wren_a = '0' OR wren_b = '0') ELSE '0';
-    write_activity <= '1' WHEN (wren_a = '1' OR wren_b = '1') ELSE '0';
+     -- Process to handle read_activity based on wren_a and clock edge
+		PROCESS(inclock)
+		BEGIN
+			IF rising_edge(inclock) THEN
+				IF wren_a = '0'  THEN
+					read_activity <= '1'; -- Rising edge of read request
+				ELSIF wren_a = '1' THEN
+					read_activity <= '0'; -- Falling edge of read request
+				END IF;
+			END IF;
+		END PROCESS;
+		
+		write_activity <= '1' WHEN (wren_a = '1' OR wren_b = '1') ELSE '0';
 
 	 
 
