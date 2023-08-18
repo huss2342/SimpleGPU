@@ -37,7 +37,7 @@ ARCHITECTURE behavior OF ppu_controller IS
 
 
     TYPE state_type IS (IDLE, READ_FROM_MEM, COMPUTE, WRITE_TO_MEM, COMPLETED);
-    SIGNAL current_state, next_state: state_type;
+    SIGNAL current_state, next_state: state_type := IDLE;
 	 SIGNAL int_ppu_result : STD_LOGIC_VECTOR(15 DOWNTO 0);
 
     CONSTANT ARRAY_DEPTH : INTEGER := 1024;
@@ -47,9 +47,9 @@ ARCHITECTURE behavior OF ppu_controller IS
 			clk          : in  STD_LOGIC;
 			reset        : in  STD_LOGIC;
 			  
-			operation    : in  STD_LOGIC_VECTOR(7 downto 0); -- Assuming 8-bit control for operations
+			operation    : in  STD_LOGIC_VECTOR(7 downto 0);
 			  
-			input_a      : in  STD_LOGIC_VECTOR(15 downto 0); -- Assuming 16-bit operands
+			input_a      : in  STD_LOGIC_VECTOR(15 downto 0);
 			input_b      : in  STD_LOGIC_VECTOR(15 downto 0);
 			output_data  : out STD_LOGIC_VECTOR(15 downto 0);
 			  
@@ -60,12 +60,16 @@ ARCHITECTURE behavior OF ppu_controller IS
 
 BEGIN
 
-    -- Instantiate the PPU
+		-- Instantiate the PPU
 		alu: ppu PORT MAP (
-			 operation    => int_ppu_operation,
-			 input_a      => int_ppu_a,
-			 input_b      => int_ppu_b,
-			 output_data  => int_ppu_result
+			 clk           => clk,
+			 reset         => reset,
+			 operation     => int_ppu_operation,
+			 input_a       => int_ppu_a,
+			 input_b       => int_ppu_b,
+			 output_data   => int_ppu_result,
+			 start_signal  => start,
+			 done_signal   => operation_done  
 		);
 
 
@@ -78,16 +82,16 @@ BEGIN
 		
 		FSM: PROCESS (clk, reset)
 		BEGIN
+		
 			 IF reset = '0' THEN
 				  current_state <= IDLE;
 				  done <= '0';
 				  mem_wren_a <= '0';
 				  mem_wren_b <= '0';
 			 ELSIF rising_edge(clk) THEN
-				  IF start = '1' THEN
 						current_state <= next_state;
-				  END IF;
 			 END IF;
+			 
 		END PROCESS;
 
 		FSM_LOGIC: PROCESS (clk, reset)
@@ -103,28 +107,37 @@ BEGIN
 							 END IF;
 
 						when READ_FROM_MEM =>
-							 mem_wren_a <= '0';
-							 mem_wren_b <= '0';
+							 -- Set the addresses for the read operation
+							 address_a <= current_address;
+							 address_b <= current_address;
+							 
+							 -- Capture the values read from memory
+							 int_ppu_a <= q_a;
+							 int_ppu_b <= q_b;
+							 
+							 -- Transition to COMPUTE state
 							 next_state <= COMPUTE;
 
 						when COMPUTE =>
-							 mem_wren_a <= '0';
-							 mem_wren_b <= '0';
-							 next_state <= WRITE_TO_MEM;
+							 -- Set operation for the ALU
+							 int_ppu_operation <= opcode;
+							 
+							 -- Check if operation is done
+							 IF operation_done = '1' THEN
+								  next_state <= WRITE_TO_MEM;
+							 END IF;
 
 						when WRITE_TO_MEM =>
 							 address_a <= std_logic_vector(unsigned(current_address) + to_unsigned(512, 10));
-							 -- Im using the to_unsigned function to convert the integer value 512 
-							 -- (which is the decimal representation of the binary value 1000000000) 
-							 -- to an unsigned type with a size of 10 bits.
 							 data_a <= int_ppu_result;
 							 mem_wren_a <= '1';
-							 if unsigned(current_address) < to_unsigned(ARRAY_DEPTH - 1, current_address'length)  then
+							 
+							 IF unsigned(current_address) < to_unsigned(ARRAY_DEPTH - 1, current_address'length) THEN
 								  current_address <= std_logic_vector(unsigned(current_address) + to_unsigned(1, current_address'length));
 								  next_state <= READ_FROM_MEM;
-							 else
+							 ELSE
 								  next_state <= COMPLETED;
-							 end if;
+							 END IF;
 
 						when COMPLETED =>
 							 mem_wren_a <= '0';
@@ -137,6 +150,8 @@ BEGIN
 				  end case;
 			 END IF;
 		END PROCESS;
+
+
 
 
     -- Interface to memory_controller

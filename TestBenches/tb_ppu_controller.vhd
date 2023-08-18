@@ -71,6 +71,20 @@ BEGIN
 		 done          => done
 	 );
 
+	 
+	 
+stimulus_process: process
+begin
+    wait for 50 ns;
+    opcode <= "00000000"; 
+    start <= '1';
+    wait for 100 ns; 
+    start <= '0';
+    wait for 500 ns;
+    wait; 
+end process stimulus_process;
+
+
 
 	 
 -- Memory Mock-up Process
