@@ -10,35 +10,33 @@ PORT(
     opcode        : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
     start         : IN  STD_LOGIC;
     reset         : IN  STD_LOGIC;
-    address_a     : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
-    address_b     : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
-    data_a        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-    data_b        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-    mem_wren_a    : OUT STD_LOGIC;
-    mem_wren_b    : OUT STD_LOGIC;
+    address_a     : OUT STD_LOGIC_VECTOR (9 DOWNTO 0) := (others => '0');
+    address_b     : OUT STD_LOGIC_VECTOR (9 DOWNTO 0) := (others => '0');
+    data_a        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    data_b        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    mem_wren_a    : OUT STD_LOGIC := '0';
+    mem_wren_b    : OUT STD_LOGIC := '0';
     q_a           : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
     q_b           : IN  STD_LOGIC_VECTOR (15 DOWNTO 0);
-    ppu_a         : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-    ppu_b         : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-    ppu_operation : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
-    ppu_result    : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-    done          : OUT STD_LOGIC
+    ppu_a         : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    ppu_b         : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    ppu_operation : OUT STD_LOGIC_VECTOR (7 DOWNTO 0) := (others => '0');
+    ppu_result    : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    done          : OUT STD_LOGIC := '0'
 );
 END ppu_controller;
 
 ARCHITECTURE behavior OF ppu_controller IS
 
-    SIGNAL current_address : STD_LOGIC_VECTOR (9 DOWNTO 0) := (others => '0');
-    SIGNAL operation_done  : STD_LOGIC := '0';
-	 
-	 SIGNAL int_ppu_operation : STD_LOGIC_VECTOR (7 DOWNTO 0);
-	 SIGNAL int_ppu_a : STD_LOGIC_VECTOR (15 DOWNTO 0);
-	 SIGNAL int_ppu_b : STD_LOGIC_VECTOR (15 DOWNTO 0);
-
+    SIGNAL current_address   : STD_LOGIC_VECTOR (9 DOWNTO 0) := (others => '0');
+    SIGNAL operation_done    : STD_LOGIC := '0';
+    SIGNAL int_ppu_operation : STD_LOGIC_VECTOR (7 DOWNTO 0) := (others => '0');
+    SIGNAL int_ppu_a         : STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    SIGNAL int_ppu_b         : STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    SIGNAL int_ppu_result    : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 
     TYPE state_type IS (IDLE, READ_FROM_MEM, COMPUTE, WRITE_TO_MEM, COMPLETED);
     SIGNAL current_state, next_state: state_type := IDLE;
-	 SIGNAL int_ppu_result : STD_LOGIC_VECTOR(15 DOWNTO 0);
 
     CONSTANT ARRAY_DEPTH : INTEGER := 1024;
 
@@ -80,25 +78,19 @@ BEGIN
 		ppu_result <= int_ppu_result;
 		
 		
-		FSM: PROCESS (clk, reset)
+		PROCESS (clk, reset)
 		BEGIN
-		
 			 IF reset = '0' THEN
 				  current_state <= IDLE;
+				  next_state <= IDLE;
 				  done <= '0';
 				  mem_wren_a <= '0';
 				  mem_wren_b <= '0';
+				  address_a <= (others => '0');  
+				  address_b <= (others => '0');
+				  
 			 ELSIF rising_edge(clk) THEN
-						current_state <= next_state;
-			 END IF;
-			 
-		END PROCESS;
-
-		FSM_LOGIC: PROCESS (clk, reset)
-		BEGIN
-			 IF reset = '0' THEN
-				  next_state <= IDLE;
-			 ELSIF rising_edge(clk) THEN
+				  current_state <= next_state;
 				  case current_state is
 						when IDLE =>
 							 IF start = '1' THEN
@@ -107,37 +99,25 @@ BEGIN
 							 END IF;
 
 						when READ_FROM_MEM =>
-							 -- Set the addresses for the read operation
-							 address_a <= current_address;
-							 address_b <= current_address;
-							 
-							 -- Capture the values read from memory
-							 int_ppu_a <= q_a;
-							 int_ppu_b <= q_b;
-							 
-							 -- Transition to COMPUTE state
+							 mem_wren_a <= '0';
+							 mem_wren_b <= '0';
 							 next_state <= COMPUTE;
 
 						when COMPUTE =>
-							 -- Set operation for the ALU
-							 int_ppu_operation <= opcode;
-							 
-							 -- Check if operation is done
-							 IF operation_done = '1' THEN
-								  next_state <= WRITE_TO_MEM;
-							 END IF;
+							 mem_wren_a <= '0';
+							 mem_wren_b <= '0';
+							 next_state <= WRITE_TO_MEM;
 
 						when WRITE_TO_MEM =>
 							 address_a <= std_logic_vector(unsigned(current_address) + to_unsigned(512, 10));
 							 data_a <= int_ppu_result;
 							 mem_wren_a <= '1';
-							 
-							 IF unsigned(current_address) < to_unsigned(ARRAY_DEPTH - 1, current_address'length) THEN
+							 if unsigned(current_address) < to_unsigned(ARRAY_DEPTH - 1, current_address'length) then
 								  current_address <= std_logic_vector(unsigned(current_address) + to_unsigned(1, current_address'length));
 								  next_state <= READ_FROM_MEM;
-							 ELSE
+							 else
 								  next_state <= COMPLETED;
-							 END IF;
+							 end if;
 
 						when COMPLETED =>
 							 mem_wren_a <= '0';
@@ -148,6 +128,7 @@ BEGIN
 							 done <= '0';
 							 next_state <= IDLE;
 				  end case;
+				  
 			 END IF;
 		END PROCESS;
 
@@ -163,5 +144,5 @@ BEGIN
     ppu_b <= q_b;
     ppu_operation <= opcode;
 
-    done <= operation_done;
+    done <= operation_done AND NOT reset;
 END behavior;

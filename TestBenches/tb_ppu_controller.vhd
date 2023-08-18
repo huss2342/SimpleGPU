@@ -12,7 +12,7 @@ COMPONENT ppu_controller
 		 clk           : IN  STD_LOGIC;
 		 opcode        : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);
 		 start         : IN  STD_LOGIC;
-		 reset         : IN  STD_LOGIC;
+		 reset         : IN  STD_LOGIC := '1';
 		 address_a     : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
 		 address_b     : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
 		 data_a        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
@@ -29,7 +29,8 @@ COMPONENT ppu_controller
 	);
 END COMPONENT;
   
-signal clk, reset, start, done : std_logic := '0';
+signal reset : std_logic := '1';
+signal clk, start, done : std_logic := '0';
 signal opcode : std_logic_vector(7 downto 0) := "00000000";
 signal address_a, address_b : std_logic_vector(9 downto 0);
 signal data_a, data_b, q_a, q_b : std_logic_vector(15 downto 0);
@@ -78,8 +79,11 @@ begin
     wait for 50 ns;
     opcode <= "00000000"; 
     start <= '1';
-    wait for 100 ns; 
-    start <= '0';
+	 wait for 50 ns;
+	 wait for 30 ns;
+	 start <= '1';
+    wait for 100 ns;
+	 start <= '0';
     wait for 500 ns;
     wait; 
 end process stimulus_process;
