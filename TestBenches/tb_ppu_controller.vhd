@@ -34,9 +34,10 @@ signal clk, start, done : std_logic := '0';
 signal opcode : std_logic_vector(7 downto 0) := "00000000";
 signal address_a, address_b : std_logic_vector(9 downto 0);
 signal data_a, data_b, q_a, q_b : std_logic_vector(15 downto 0);
-signal mem_wren_a, mem_wren_b, ppu_enable : std_logic;
+signal mem_wren_a, mem_wren_b : std_logic;
 signal ppu_a, ppu_b, ppu_result : std_logic_vector(15 downto 0);
 signal ppu_operation : std_logic_vector(7 downto 0);
+signal init_data_a : std_logic_vector(15 downto 0);
 
 -- Signals for memory mock-up
 type memory_array_type is array(0 to 2047) of std_logic_vector(15 downto 0);
@@ -46,7 +47,7 @@ signal init_address : std_logic_vector(9 downto 0);
 signal init_wren : std_logic := '0';
 
 BEGIN
-	-- 20ns CLOCK
+	-- 20ns CLOCK+
 	clk <= not clk after 10 ns;
 
     -- Instantiate the PPU with signals
@@ -77,40 +78,43 @@ BEGIN
 
 	 
 	 
-stimulus_process: process
-begin
-    wait for 50 ns;
-    opcode <= "00000000"; 
-    start <= '1';
-	 wait for 50 ns;
-	 
-	 reset <= '0';       -- Assert reset
-	 wait for 20 ns;     -- Wait for 20ns
-	 reset <= '1';       -- Deassert reset
+		stimulus_process: process
+		begin
+			 wait for 50 ns;
+			 opcode <= "00000000"; 
+			 start <= '1';
+			 wait for 50 ns;
+			 
+			 reset <= '0';       -- Assert reset
+			 wait for 20 ns;     -- Wait for 20ns
+			 reset <= '1';       -- Deassert reset
 
-	 
-	 wait for 30 ns;
-	 start <= '1';
-    wait for 100 ns;
-	 start <= '0';
-    wait for 500 ns;
-    wait; 
-end process stimulus_process;
+			 wait until done = '1'; -- Wait until operation is complete
+			 report "Operation completed at time: " & time'image(now); -- Report the time
+			 
+			 start <= '0';
+			 wait; 
+		end process stimulus_process;
 
 
+		-- INITIALIZING THE RAM
 		RAM_INIT: process
-			 CONSTANT ARRAY_DEPTH : INTEGER := 1024;
+			 CONSTANT ARRAY_DEPTH : INTEGER := 512;
 		begin
 			 for i in 0 to ARRAY_DEPTH-1 loop
-				  init_address <= std_logic_vector(to_unsigned(i, init_address'length)); 
-				  data_a <= std_logic_vector(to_unsigned(i, data_a'length));
-				  init_wren <= '1'; -- Set init_wren to '1' during initialization
+				  init_address <= std_logic_vector(to_unsigned(i, init_address'length));
+				  init_data_a <= std_logic_vector(to_unsigned(i, init_data_a'length));
+				  init_wren <= '1';
+				  wait for 10 ns;
+				  init_address <= std_logic_vector(to_unsigned(i + ARRAY_DEPTH, init_address'length));
+				  init_data_a <= std_logic_vector(to_unsigned(ARRAY_DEPTH - 1 - i, init_data_a'length));
 				  wait for 10 ns;
 			 end loop;
-
 			 init_wren <= '0'; -- Reset init_wren to '0' after initialization
 			 wait;
 		end process RAM_INIT;
+
+
 
 	 
 		-- Memory Mock-up Process
@@ -118,9 +122,9 @@ end process stimulus_process;
 		begin
 			 if rising_edge(clk) then
 				  -- Write operation for initialization
-				  if init_wren = '1' then
-						memory(to_integer(unsigned(init_address))) <= data_a;
-				  end if;
+					if init_wren = '1' then
+						memory(to_integer(unsigned(init_address))) <= init_data_a; -- Use init_data_a
+					end if;
 				  
 				  -- Write operation for A (from ppu_controller)
 				  if mem_wren_a = '1' then
