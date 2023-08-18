@@ -136,8 +136,8 @@ BEGIN
 
 
     -- Interface to memory_controller
-    address_a <= current_address;
-    address_b <= current_address;
+    --address_a <= current_address;
+    --address_b <= current_address;
 
     -- Interface to PPU
     ppu_a <= q_a;

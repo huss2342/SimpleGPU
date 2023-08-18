@@ -42,6 +42,9 @@ signal ppu_operation : std_logic_vector(7 downto 0);
 type memory_array_type is array(0 to 2047) of std_logic_vector(15 downto 0);
 signal memory : memory_array_type := (others => (others => '0'));
 
+signal init_address : std_logic_vector(9 downto 0);
+signal init_wren : std_logic := '0';
+
 BEGIN
 	-- 20ns CLOCK
 	clk <= not clk after 10 ns;
@@ -80,6 +83,12 @@ begin
     opcode <= "00000000"; 
     start <= '1';
 	 wait for 50 ns;
+	 
+	 reset <= '0';       -- Assert reset
+	 wait for 20 ns;     -- Wait for 20ns
+	 reset <= '1';       -- Deassert reset
+
+	 
 	 wait for 30 ns;
 	 start <= '1';
     wait for 100 ns;
@@ -89,44 +98,47 @@ begin
 end process stimulus_process;
 
 
+		RAM_INIT: process
+			 CONSTANT ARRAY_DEPTH : INTEGER := 1024;
+		begin
+			 for i in 0 to ARRAY_DEPTH-1 loop
+				  init_address <= std_logic_vector(to_unsigned(i, init_address'length)); 
+				  data_a <= std_logic_vector(to_unsigned(i, data_a'length));
+				  init_wren <= '1'; -- Set init_wren to '1' during initialization
+				  wait for 10 ns;
+			 end loop;
+
+			 init_wren <= '0'; -- Reset init_wren to '0' after initialization
+			 wait;
+		end process RAM_INIT;
 
 	 
--- Memory Mock-up Process
-process(clk)
-begin
-    if rising_edge(clk) then
-        -- Write operation for A
-        if mem_wren_a = '1' then
-            memory(to_integer(unsigned(address_a))) <= data_a;
-        end if;
-        
-        -- Write operation for B
-        if mem_wren_b = '1' then
-            memory(to_integer(unsigned(address_b))) <= data_b;
-        end if;
-        
-        -- Read operation for A
-        q_a <= memory(to_integer(unsigned(address_a)));
-        
-        -- Read operation for B
-        q_b <= memory(to_integer(unsigned(address_b)));
-    end if;
-end process;
+		-- Memory Mock-up Process
+		process(clk)
+		begin
+			 if rising_edge(clk) then
+				  -- Write operation for initialization
+				  if init_wren = '1' then
+						memory(to_integer(unsigned(init_address))) <= data_a;
+				  end if;
+				  
+				  -- Write operation for A (from ppu_controller)
+				  if mem_wren_a = '1' then
+						memory(to_integer(unsigned(address_a))) <= data_a;
+				  end if;
+				  
+				  -- Write operation for B
+				  if mem_wren_b = '1' then
+						memory(to_integer(unsigned(address_b))) <= data_b;
+				  end if;
+				  
+				  -- Read operation for A
+				  q_a <= memory(to_integer(unsigned(address_a)));
+				  
+				  -- Read operation for B
+				  q_b <= memory(to_integer(unsigned(address_b)));
+			 end if;
+		end process;
 
--- Memory Initialization (you can adjust the values as needed)
-process
-begin
-    -- Initialize first array (let's say with values from 1 to 1024)
-    for i in 0 to 1023 loop
-        memory(i) <= std_logic_vector(to_unsigned(i+1, 16));
-    end loop;
-    
-    -- Initialize second array (let's say with values from 1024 down to 1)
-    for i in 1024 to 2047 loop
-        memory(i) <= std_logic_vector(to_unsigned(2048-i, 16));
-    end loop;
-
-    wait;  -- To indefinitely suspend the process after initialization
-end process;
 
 end behavior;

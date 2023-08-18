@@ -4,6 +4,7 @@
 ------------------------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
+USE ieee.numeric_std.all;
 
 LIBRARY altera_mf;
 USE altera_mf.all;
@@ -28,10 +29,8 @@ PORT(
 END memory_controller;
 
 ARCHITECTURE behavior OF memory_controller IS
-    -- Signal declarations for memory_controller
-    
-    SIGNAL local_wren_a : STD_LOGIC := '0';
-    SIGNAL local_wren_b : STD_LOGIC := '0';
+	SIGNAL local_wren_a : STD_LOGIC;
+	SIGNAL local_wren_b : STD_LOGIC;
 
     -- RAM instantiation
     COMPONENT ram
@@ -58,40 +57,37 @@ BEGIN
 		PROCESS(inclock)
 		BEGIN
 			 IF rising_edge(inclock) THEN
-				  IF address_a > MAX_ADDRESS THEN
+				  -- Check for address_a validity
+				  IF unsigned(address_a) > unsigned(MAX_ADDRESS) THEN
 						local_wren_a <= '0';  -- Disable write to RAM for address_a
 				  ELSE
-						local_wren_a <= wren_a;
+						local_wren_a <= wren_a AND NOT write_protect; -- Use the global wren_a and the write_protect signal
 				  END IF;
-				  
-				  IF address_b > MAX_ADDRESS THEN
+
+				  -- Check for address_b validity
+				  IF unsigned(address_b) > unsigned(MAX_ADDRESS) THEN
 						local_wren_b <= '0';  -- Disable write to RAM for address_b
 				  ELSE
-						local_wren_b <= wren_b;
+						local_wren_b <= wren_b AND NOT write_protect; -- Use the global wren_b and the write_protect signal
 				  END IF;
 			 END IF;
 		END PROCESS;
 
 
     -- RAM instantiation in memory_controller architecture
-    ram_instance: ram
-        PORT MAP(
-            address_a  => address_a,
-            address_b  => address_b,
-            data_a     => data_a,
-            data_b     => data_b,
-            inclock    => inclock,
-            outclock   => outclock,
-            wren_a     => wren_a,
-            wren_b     => wren_b,
-            q_a        => q_a,
-            q_b        => q_b
-        );
-
-
-    -- Write protection logic
-    local_wren_a <= '0' WHEN write_protect = '1' ELSE wren_a;
-    local_wren_b <= '0' WHEN write_protect = '1' ELSE wren_b;
+	  ram_instance: ram
+		 PORT MAP(
+			  address_a  => address_a,
+			  address_b  => address_b,
+			  data_a     => data_a,
+			  data_b     => data_b,
+			  inclock    => inclock,
+			  outclock   => outclock,
+			  wren_a     => local_wren_a, 
+			  wren_b     => local_wren_b, 
+			  q_a        => q_a,
+			  q_b        => q_b
+		 );
 
     -- Activity indicators
     read_activity <= '1' WHEN (wren_a = '0' OR wren_b = '0') ELSE '0';
