@@ -142,18 +142,19 @@ BEGIN
 								  next_state <= WRITE_TO_MEM;
 							 END IF;
 
-							 
+													 
 						when WRITE_TO_MEM =>
-							 address_a  <= std_logic_vector(to_unsigned(index_c, address_a'length));
-							 data_a     <= output_data;
-							 wren_a     <= '1';
-							 
-						    index_a <= index_a + 1;
-						    index_b <= index_b + 1;
-						    index_c <= index_c + 1;
-							 
-						    next_state <= READ_FROM_MEM;
-							 if index_a >= SECTION_A_END then
+							 if index_a < SECTION_A_END then
+								  address_a <= std_logic_vector(to_unsigned(index_c, address_a'length));
+								  data_a    <= output_data;
+								  wren_a    <= '1';
+								  
+								  index_a <= index_a + 1;
+								  index_b <= index_b + 1;
+								  index_c <= index_c + 1;
+								  
+								  next_state <= READ_FROM_MEM;
+							 else
 								  next_state <= COMPLETED;
 							 end if;
 

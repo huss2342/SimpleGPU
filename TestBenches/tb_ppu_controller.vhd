@@ -180,13 +180,15 @@ BEGIN
 				  ppuctl_start <= '0';
 				  started := false;
 			 elsif rising_edge(clk) and ram_initialized = '1' then
-				  if not started then
+				  if ppuctl_done = '1' then
+				  		ppuctl_start <= '0'; -- Stop the ALU after it's done
+						started := false;
+				  elsif not started then
 						ppuctl_opcode <= "00000000";
 						ppuctl_start <= '1';
 						started := true;
-				  elsif ppuctl_done = '1' then
-						ppuctl_start <= '0'; -- Stop the ALU after it's done
-						started := false;
+
+
 				  end if;
 			 end if;
 		end process;
