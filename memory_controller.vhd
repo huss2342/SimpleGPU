@@ -19,20 +19,18 @@ PORT(
     outclock      : IN STD_LOGIC;
     wren_a        : IN STD_LOGIC;
     wren_b        : IN STD_LOGIC;
-    write_protect : IN STD_LOGIC; -- new signal for write protection
-    reset         : IN STD_LOGIC; -- new reset signal
+    write_protect : IN STD_LOGIC:= '0'; 
+    reset         : IN STD_LOGIC; 
     q_a           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-    q_b           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-    read_activity : OUT STD_LOGIC; -- indicates a read operation
-    write_activity: OUT STD_LOGIC  -- indicates a write operation
+    q_b           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0)
+
 );
 END memory_controller;
 
 ARCHITECTURE behavior OF memory_controller IS
 	SIGNAL local_wren_a : STD_LOGIC;
 	SIGNAL local_wren_b : STD_LOGIC;
-   --SIGNAL last_wren_a : STD_LOGIC := '1'; -- Declare the signal here and initialize to '1'
-    
+	 
 	 -- RAM instantiation
     COMPONENT ram
         PORT(
@@ -50,7 +48,7 @@ ARCHITECTURE behavior OF memory_controller IS
     END COMPONENT;
 
     -- Address range check for the given example (10-bit address)
-    CONSTANT MAX_ADDRESS : STD_LOGIC_VECTOR(9 DOWNTO 0) := "1111111111";
+    CONSTANT MAX_ADDRESS : STD_LOGIC_VECTOR(11 DOWNTO 0) := "111111111111";
 
 BEGIN
 
@@ -93,21 +91,7 @@ BEGIN
 			  q_b        => q_b
 		 );
 
-     -- Process to handle read_activity based on wren_a and clock edge
-		PROCESS(inclock)
-		BEGIN
-			IF rising_edge(inclock) THEN
-				IF wren_a = '0'  THEN
-					read_activity <= '1'; -- Rising edge of read request
-				ELSIF wren_a = '1' THEN
-					read_activity <= '0'; -- Falling edge of read request
-				END IF;
-			END IF;
-		END PROCESS;
-		
-		write_activity <= '1' WHEN (wren_a = '1' OR wren_b = '1') ELSE '0';
 
-	 
 
 END behavior;
 

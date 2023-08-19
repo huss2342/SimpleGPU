@@ -16,7 +16,6 @@ Using the Cyclone II DE 2: EP2C35F672C6N
 	basic ALU structure
 
 [memory_controller]
-	2 Byte wide memory with a depth of 1024 so we can store a total of 16384 bits or 2048 Bytes.
 
 	basic memory implementation to utilize dual-port RAM, which allows simultaneous read/write 
 	operations on two different addresses. This can be extremely useful in a GPU setting where 
