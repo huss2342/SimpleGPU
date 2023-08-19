@@ -153,10 +153,11 @@ BEGIN
 				ppuctl_mem_wren_B <= '0';
 				ppuctl_address_a  <= (others => '0');  
 				ppuctl_address_b  <= (others => '0');
-				--ppuctl_data_a        <= (others => '0');
-				--ppuctl_data_b        <= (others => '0');
 				
 			ELSIF rising_edge(clk) THEN
+					variable instant_address_a : STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
+					variable instant_address_b : STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
+					
 				  current_state <= next_state;
 				  
 				  case current_state is
@@ -175,12 +176,15 @@ BEGIN
 							 ppuctl_mem_wren_b <= '0';
 						
 						    --calculate the addresses and send them to memory as they are connected
-							 ppuctl_address_a <= std_logic_vector(to_unsigned(index_a, address_a'length));
-							 ppuctl_address_b <= std_logic_vector(to_unsigned(index_b, address_b'length));
-							 							 
+							 instant_address_a := std_logic_vector(to_unsigned(index_a, ppuctl_address_a'length));
+							 instant_address_b := std_logic_vector(to_unsigned(index_b, ppuctl_address_b'length));
+							 
+							 address_a <= instant_address_a;
+							 address_b <= instant_address_b;
+							 
 							 --send what is stored there into the ppu
-							 input_a    <= ppuctl_q_a;
-							 input_b    <= ppuctl_q_b;
+							 input_a    <= q_a;
+							 input_b    <= q_b;
 							 
 							 next_state <= COMPUTE;
 
@@ -198,7 +202,7 @@ BEGIN
 
 							 
 						when WRITE_TO_MEM =>
-							 address_a         <= std_logic_vector(to_unsigned(index_c, address_a'length));
+							 address_a         <= std_logic_vector(to_unsigned(index_c, ppuctl_address_a'length));
 							 data_a            <= output_data;
 							 ppuctl_mem_wren_a <= '1';
 							 

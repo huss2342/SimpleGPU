@@ -19,9 +19,28 @@ ARCHITECTURE behavior OF tb_memory_controller IS
     SIGNAL reset          : STD_LOGIC := '1';
     SIGNAL q_a            : STD_LOGIC_VECTOR (15 DOWNTO 0);
     SIGNAL q_b            : STD_LOGIC_VECTOR (15 DOWNTO 0);
-
+	
+	
+	COMPONENT memory_controller 
+	PORT(
+    inclock       : IN STD_LOGIC;
+    outclock      : IN STD_LOGIC;
+    address_a     : IN STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
+    address_b     : IN STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
+    data_a        : IN STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    data_b        : IN STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    wren_a        : IN STD_LOGIC                      := '0';
+    wren_b        : IN STD_LOGIC                      := '0';
+    reset         : IN STD_LOGIC                      := '1'; 
+    q_a           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0');
+    q_b           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0')
+	);
+	END COMPONENT; 
+	
 BEGIN
 
+	
+	
     -- Clock generation
     PROCESS
     BEGIN
@@ -31,7 +50,7 @@ BEGIN
     END PROCESS;
 
     -- Instantiating the memory_controller
-    UUT: ENTITY work.memory_controller
+    UUT: memory_controller
     PORT MAP(
         address_a     => address_a,
         address_b     => address_b,

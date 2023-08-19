@@ -19,8 +19,8 @@ ARCHITECTURE behavior OF ppu_controller_tb IS
     SIGNAL address_b     : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
     SIGNAL data_a        : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
     SIGNAL data_b        : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
-    SIGNAL mem_wren_a    : STD_LOGIC                     := '0';
-    SIGNAL mem_wren_b    : STD_LOGIC                     := '0';
+    SIGNAL wren_a    : STD_LOGIC                     := '0';
+    SIGNAL wren_b    : STD_LOGIC                     := '0';
     SIGNAL q_a           : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
     SIGNAL q_b           : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 	 
@@ -66,12 +66,9 @@ ARCHITECTURE behavior OF ppu_controller_tb IS
 	 
 BEGIN
 
-    -- 20ns CLOCK
-    clk_process : PROCESS
-    BEGIN
-        clk <= not clk after 10 ns;
-        wait;
-    END PROCESS;
+   -- 20ns CLOCK
+   clk <= not clk after 10 ns;
+
 
     -- Instantiate the ppu_controller
     UUT: ppu_controller PORT MAP (
@@ -90,8 +87,8 @@ BEGIN
 			  address_b => address_b,
 			  data_a    => data_a,
 			  data_b    => data_b,
-			  wren_a    => mem_wren_a,
-			  wren_b    => mem_wren_b,
+			  wren_a    => wren_a,
+			  wren_b    => wren_b,
 			  q_a       => q_a,
 			  q_b       => q_b
 			  );
@@ -108,17 +105,17 @@ BEGIN
 						-- Writing to Section A
 						address_a  <= std_logic_vector(to_unsigned(init_index, address_a'length));
 						data_a     <= "0000000000000001";
-						mem_wren_a <= '1';
+						wren_a <= '1';
 
 						-- Writing to Section B
 						address_b  <= std_logic_vector(to_unsigned(init_index + SECTION_B_START, address_b'length));
 						data_b     <= "0000000000000010"; -- Direct binary value for 2
-						mem_wren_b <= '1';
+						wren_b <= '1';
 
 						init_index <= init_index + 1;
 				  else
-						mem_wren_a <= '0';
-						mem_wren_b <= '0';
+						wren_a <= '0';
+						wren_b <= '0';
 						ram_initialized <= '1';
 				  end if;
 			 end if;
