@@ -5,17 +5,23 @@ USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
 	ENTITY ppu_controller IS
-	PORT(
-		 clk                  : IN  STD_LOGIC;
-		 reset                : IN  STD_LOGIC                      := '1';
-		 
-		 ppuctl_opcode        : IN  STD_LOGIC_VECTOR (7 DOWNTO 0)  := (others => '0');
-		 ppuctl_start         : IN  STD_LOGIC                      := '0'; --will be used for testing. to control when to start the ppu_controller  ***                   
-		 
-		 ppuctl_done          : OUT STD_LOGIC                      := '0'
-	);
+		PORT(
+			 clk                  : IN  STD_LOGIC;
+			 reset                : IN  STD_LOGIC                      := '1';
+			 ppuctl_opcode        : IN  STD_LOGIC_VECTOR (7 DOWNTO 0)  := (others => '0');
+			 ppuctl_start         : IN  STD_LOGIC                      := '0';
+			 ppuctl_done          : OUT STD_LOGIC                      := '0';
+			 
+			 address_a            : OUT  STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
+			 address_b            : OUT  STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
+			 data_a               : OUT  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+			 data_b               : OUT  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+			 wren_a               : OUT  STD_LOGIC                      := '0';
+			 wren_b               : OUT  STD_LOGIC                      := '0';
+			 q_a                  : IN STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+			 q_b                  : IN STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0')
+		);
 	END ppu_controller;
-
 ARCHITECTURE behavior OF ppu_controller IS
 
 	 --------- PPU SIGNALS ---------	
@@ -24,19 +30,7 @@ ARCHITECTURE behavior OF ppu_controller IS
     SIGNAL input_a         				: STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
     SIGNAL input_b         				: STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
     SIGNAL output_data    					: STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-	 
-	 --------- MEMORY SIGNALS ---------
-	 SIGNAL address_a                   : STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
-	 SIGNAL address_b                   : STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
-	 SIGNAL data_a                      : STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-	 SIGNAL data_b                      : STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-	 SIGNAL inclock                     : STD_LOGIC                      := '0';
-	 SIGNAL outclock                    : STD_LOGIC                      := '0';
-	 SIGNAL wren_a                      : STD_LOGIC                      := '0';
-	 SIGNAL wren_b                      : STD_LOGIC                      := '0';
-	 SIGNAL q_a                         : STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-	 SIGNAL q_b                         : STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-			
+	
 	 --------- States ---------
 	 
     TYPE state_type IS (IDLE, READ_FROM_MEM, COMPUTE, WRITE_TO_MEM, COMPLETED);
@@ -76,28 +70,6 @@ ARCHITECTURE behavior OF ppu_controller IS
 			done_signal  : out STD_LOGIC                     := '0'
 		 );
     end component;
-
-	 
-	 COMPONENT memory_controller
-		PORT(
-			 inclock       : IN STD_LOGIC;
-			 outclock      : IN STD_LOGIC;
-			 reset         : IN STD_LOGIC:= '1';
-			 
-			 address_a     : IN STD_LOGIC_VECTOR (11 DOWNTO 0)  := (others => '0');
-			 address_b     : IN STD_LOGIC_VECTOR (11 DOWNTO 0)  := (others => '0');
-			 
-			 data_a        : IN STD_LOGIC_VECTOR (15 DOWNTO 0)  := (others => '0');
-			 data_b        : IN STD_LOGIC_VECTOR (15 DOWNTO 0)  := (others => '0');
-			 
-			 wren_a        : IN STD_LOGIC                       := '0';
-			 wren_b        : IN STD_LOGIC                       := '0';
-			
-			 q_a           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-			 q_b           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0')
-
-		);
-  END COMPONENT;
   
 BEGIN
 
@@ -115,24 +87,6 @@ BEGIN
 			 start_signal  => start_signal,
 			 done_signal   => done_signal  
 		);
-		
-		memory: memory_controller PORT MAP(
-			inclock   		=> clk,
-			outclock			=> clk,
-			reset				=> reset,
-			
-			address_a      => address_a,
-			address_b      => address_b,
-			
-			data_a         => data_a,
-			data_b         => data_b,
-			
-			wren_a         => wren_a,
-			wren_b         => wren_b,
-
-			q_a            => q_a,
-		   q_b            => q_b
-		 );
 		 
 		 
 		PROCESS (clk, reset)
