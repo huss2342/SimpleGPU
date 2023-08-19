@@ -151,17 +151,17 @@ BEGIN
 					 ram_wren_b <= '0';
 			  elsif rising_edge(clk) and ram_initialized = '0' then
 					 if init_index <= SECTION_A_END then
-							-- Writing to Section A
-							ram_address_a <= std_logic_vector(to_unsigned(init_index, ram_address_a'length));
-							ram_data_a    <= "0000000000000001";
-							ram_wren_a    <= '1';
+						-- Writing to Section A
+						ram_address_a <= std_logic_vector(to_unsigned(init_index, ram_address_a'length));
+						ram_data_a    <= std_logic_vector(to_unsigned(init_index, ram_data_a'length)); -- Value is the index itself
+						ram_wren_a    <= '1';
 
-							-- Writing to Section B
-							ram_address_b <= std_logic_vector(to_unsigned(init_index + SECTION_B_START, ram_address_b'length));
-							ram_data_b    <= "0000000000000010"; -- Direct binary value for 2
-							ram_wren_b    <= '1';
+						-- Writing to Section B
+						ram_address_b <= std_logic_vector(to_unsigned(init_index + SECTION_B_START, ram_address_b'length));
+						ram_data_b    <= std_logic_vector(to_unsigned(init_index * 2, ram_data_b'length)); -- Value is twice the index
+						ram_wren_b    <= '1';
 
-							init_index <= init_index + 1;
+						init_index <= init_index + 1;
 					 else
 							ram_wren_a <= '0';
 							ram_wren_b <= '0';

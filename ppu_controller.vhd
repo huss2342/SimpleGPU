@@ -33,7 +33,7 @@ ARCHITECTURE behavior OF ppu_controller IS
 	
 	 --------- States ---------
 	 
-    TYPE state_type IS (IDLE, READ_FROM_MEM, COMPUTE, WRITE_TO_MEM, COMPLETED);
+    TYPE state_type IS (IDLE, READ_FROM_MEM, COMPUTE, WRITE_TO_MEM, INCREMENT_INDEXES, COMPLETED);
     SIGNAL current_state, next_state: state_type := IDLE;
 	 
 	 --------- memory variables ---------
@@ -90,7 +90,7 @@ BEGIN
 		 
 		 
 		PROCESS (clk, reset)
-		
+		 variable has_incremented : BOOLEAN := FALSE;
 		BEGIN
 			IF reset = '0' THEN
 				current_state     <= IDLE;
@@ -142,28 +142,33 @@ BEGIN
 								  next_state <= WRITE_TO_MEM;
 							 END IF;
 
-													 
-						when WRITE_TO_MEM =>
+							when WRITE_TO_MEM =>
 							 if index_a < SECTION_A_END then
 								  address_a <= std_logic_vector(to_unsigned(index_c, address_a'length));
 								  data_a    <= output_data;
 								  wren_a    <= '1';
-								  
-								  index_a <= index_a + 1;
-								  index_b <= index_b + 1;
-								  index_c <= index_c + 1;
-								  
-								  next_state <= READ_FROM_MEM;
+
+								  has_incremented := FALSE; -- Reset the flag
+								  next_state <= INCREMENT_INDEXES;
 							 else
 								  next_state <= COMPLETED;
 							 end if;
 
-							 
+						when INCREMENT_INDEXES =>
+							 if not has_incremented then
+								  index_a <= index_a + 1;
+								  index_b <= index_b + 1;
+								  index_c <= index_c + 1;
+
+								  has_incremented := TRUE; -- Set the flag to prevent further increment
+							 end if;
+							 next_state <= READ_FROM_MEM;
+						  
 						when COMPLETED =>
 							 wren_a <= '0';
 							 wren_b <= '0';
 							 ppuctl_done <= '1';
-
+							 -- TODO: reset section_A and section_B
 							 
 						when others =>
 							 ppuctl_done <= '0';
@@ -175,3 +180,4 @@ BEGIN
 		END PROCESS;
 		
 END behavior;
+-- ADD FLIPFLOPS TO THE INPUTS AND OUTPUTS LATER
