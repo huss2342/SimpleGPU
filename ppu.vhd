@@ -16,11 +16,11 @@ entity ppu is
       clk          : in  STD_LOGIC;
       reset        : in  STD_LOGIC;
         
-		operation    : in  STD_LOGIC_VECTOR(7 downto 0); 
+		operation    : in  STD_LOGIC_VECTOR(7 downto 0)  := (others => '0'); 
         
-		input_a      : in  STD_LOGIC_VECTOR(15 downto 0);
-      input_b      : in  STD_LOGIC_VECTOR(15 downto 0);
-      output_data  : out STD_LOGIC_VECTOR(15 downto 0);
+		input_a      : in  STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
+      input_b      : in  STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
+      output_data  : out STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
 		  
 		start_signal : in  STD_LOGIC;
       done_signal  : out STD_LOGIC

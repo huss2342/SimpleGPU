@@ -42,7 +42,6 @@ BEGIN
         outclock      => outclock,
         wren_a        => wren_a,
         wren_b        => wren_b,
-        write_protect => write_protect,
         reset         => reset,
         q_a           => q_a,
         q_b           => q_b

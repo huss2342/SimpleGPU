@@ -11,18 +11,17 @@ USE altera_mf.all;
 
 ENTITY memory_controller IS
 PORT(
-    address_a     : IN STD_LOGIC_VECTOR (11 DOWNTO 0);
-    address_b     : IN STD_LOGIC_VECTOR (11 DOWNTO 0);
-    data_a        : IN STD_LOGIC_VECTOR (15 DOWNTO 0);
-    data_b        : IN STD_LOGIC_VECTOR (15 DOWNTO 0);
     inclock       : IN STD_LOGIC;
     outclock      : IN STD_LOGIC;
-    wren_a        : IN STD_LOGIC;
-    wren_b        : IN STD_LOGIC;
-    write_protect : IN STD_LOGIC:= '0'; 
-    reset         : IN STD_LOGIC; 
-    q_a           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
-    q_b           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0)
+    address_a     : IN STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
+    address_b     : IN STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
+    data_a        : IN STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    data_b        : IN STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    wren_a        : IN STD_LOGIC                      := '0';
+    wren_b        : IN STD_LOGIC                      := '0';
+    reset         : IN STD_LOGIC                      := '1'; 
+    q_a           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0');
+    q_b           : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0')
 
 );
 END memory_controller;
@@ -51,32 +50,7 @@ ARCHITECTURE behavior OF memory_controller IS
     CONSTANT MAX_ADDRESS : STD_LOGIC_VECTOR(11 DOWNTO 0) := "111111111111";
 
 BEGIN
-
-		-- Check addresses and set local write enables
-		PROCESS(inclock,reset)
-		BEGIN
-			 IF reset = '0' THEN
-				local_wren_a <= '0';
-				local_wren_b <= '0';
-			 ELSIF rising_edge(inclock) THEN
-				  -- Check for address_a validity
-				  IF unsigned(address_a) > unsigned(MAX_ADDRESS) THEN
-						local_wren_a <= '0';  -- Disable write to RAM for address_a
-				  ELSE
-						local_wren_a <= wren_a AND NOT write_protect; -- Use the global wren_a and the write_protect signal
-				  END IF;
-
-				  -- Check for address_b validity
-				  IF unsigned(address_b) > unsigned(MAX_ADDRESS) THEN
-						local_wren_b <= '0';  -- Disable write to RAM for address_b
-				  ELSE
-						local_wren_b <= wren_b AND NOT write_protect; -- Use the global wren_b and the write_protect signal
-				  END IF;
-			 END IF;
-		END PROCESS;
-
-
-    -- RAM instantiation in memory_controller architecture
+		    -- RAM instantiation in memory_controller architecture
 	  ram_instance: ram
 		 PORT MAP(
 			  address_a  => address_a,
@@ -90,6 +64,32 @@ BEGIN
 			  q_a        => q_a,
 			  q_b        => q_b
 		 );
+
+		-- Check addresses and set local write enables
+		PROCESS(inclock,reset)
+		BEGIN
+			 IF reset = '0' THEN
+				local_wren_a <= '0';
+				local_wren_b <= '0';
+			 ELSIF rising_edge(inclock) THEN
+				  -- Check for address_a validity
+				  IF unsigned(address_a) > unsigned(MAX_ADDRESS) THEN
+						local_wren_a <= '0';  -- Disable write to RAM for address_a
+				  ELSE
+						local_wren_a <= wren_a;
+				  END IF;
+
+				  -- Check for address_b validity
+				  IF unsigned(address_b) > unsigned(MAX_ADDRESS) THEN
+						local_wren_b <= '0';  -- Disable write to RAM for address_b
+				  ELSE
+						local_wren_b <= wren_b;
+				  END IF;
+			 END IF;
+		END PROCESS;
+
+
+
 
 
 
