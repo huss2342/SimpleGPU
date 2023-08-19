@@ -22,8 +22,8 @@ entity ppu is
       input_b      : in  STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
       output_data  : out STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
 		  
-		start_signal : in  STD_LOGIC;
-      done_signal  : out STD_LOGIC
+		start_signal : in  STD_LOGIC                     := '0';
+      done_signal  : out STD_LOGIC                     := '0'
     );
 end ppu;
 

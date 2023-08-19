@@ -8,21 +8,11 @@ USE ieee.numeric_std.all;
 	PORT(
 		 clk                  : IN  STD_LOGIC;
 		 reset                : IN  STD_LOGIC                      := '1';
+		 
 		 ppuctl_opcode        : IN  STD_LOGIC_VECTOR (7 DOWNTO 0)  := (others => '0');
 		 ppuctl_start         : IN  STD_LOGIC                      := '0'; --will be used for testing. to control when to start the ppu_controller  ***                   
-		 --ppuctl_address_a     : BUFFER STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
-		 --ppuctl_address_b     : BUFFER STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
-		 --ppuctl_data_a        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-		 --ppuctl_data_b        : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-		 --ppuctl_mem_wren_a    : BUFFER STD_LOGIC                      := '0';
-		 --ppuctl_mem_wren_b    : BUFFER STD_LOGIC                      := '0'; --not used since we write only a single number at a time ***
-		 --ppuctl_q_a           : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-		 --ppuctl_q_b           : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-		 --ppuctl_ppu_a         : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-		 --ppuctl_ppu_b         : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-		 --ppuctl_ppu_operation : OUT STD_LOGIC_VECTOR (7 DOWNTO 0)  := (others => '0');
-		 --ppuctl_ppu_result    : OUT STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-		 ppuctl_done          : OUT STD_LOGIC := '0'
+		 
+		 ppuctl_done          : OUT STD_LOGIC                      := '0'
 	);
 	END ppu_controller;
 
@@ -89,8 +79,8 @@ ARCHITECTURE behavior OF ppu_controller IS
 			input_b      : in  STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
 			output_data  : out STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
 			  
-			start_signal : in  STD_LOGIC;
-			done_signal  : out STD_LOGIC
+			start_signal : in  STD_LOGIC                     := '0';
+			done_signal  : out STD_LOGIC                     := '0'
 		 );
     end component;
 
@@ -139,13 +129,13 @@ BEGIN
 			reset				=> reset,
 			
 			address_a      => ppuctl_address_a,
-			address_b      => ppuctl_address_a,
+			address_b      => ppuctl_address_b,
 			
 			data_a         => data_a,
 			data_b         => data_b,
 			
 			wren_a         => ppuctl_mem_wren_a,
-			wren_b         => ppuctl_mem_wren_a,
+			wren_b         => ppuctl_mem_wren_b,
 
 			q_a            => ppuctl_q_a,
 		   q_b            => ppuctl_q_b
@@ -181,6 +171,9 @@ BEGIN
 
 							 
 						when READ_FROM_MEM =>
+							 ppuctl_mem_wren_a <= '0';
+							 ppuctl_mem_wren_b <= '0';
+						
 						    --calculate the addresses and send them to memory as they are connected
 							 ppuctl_address_a <= std_logic_vector(to_unsigned(index_a, address_a'length));
 							 ppuctl_address_b <= std_logic_vector(to_unsigned(index_b, address_b'length));

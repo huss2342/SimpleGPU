@@ -16,7 +16,6 @@ ARCHITECTURE behavior OF tb_memory_controller IS
     SIGNAL outclock       : STD_LOGIC := '0';
     SIGNAL wren_a         : STD_LOGIC := '0';
     SIGNAL wren_b         : STD_LOGIC := '0';
-    SIGNAL write_protect  : STD_LOGIC := '0';
     SIGNAL reset          : STD_LOGIC := '1';
     SIGNAL q_a            : STD_LOGIC_VECTOR (15 DOWNTO 0);
     SIGNAL q_b            : STD_LOGIC_VECTOR (15 DOWNTO 0);
