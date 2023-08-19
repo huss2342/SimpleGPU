@@ -27,8 +27,6 @@ PORT(
 END memory_controller;
 
 ARCHITECTURE behavior OF memory_controller IS
-	SIGNAL local_wren_a : STD_LOGIC;
-	SIGNAL local_wren_b : STD_LOGIC;
 	 
 	 -- RAM instantiation
     COMPONENT ram
@@ -59,38 +57,36 @@ BEGIN
 			  data_b     => data_b,
 			  inclock    => inclock,
 			  outclock   => outclock,
-			  wren_a     => local_wren_a, 
-			  wren_b     => local_wren_b, 
+			  wren_a     => wren_a, 
+			  wren_b     => wren_b, 
 			  q_a        => q_a,
 			  q_b        => q_b
 		 );
 
-		-- Check addresses and set local write enables
-		PROCESS(inclock,reset)
+
+
+		-- Address Handling and Read/Write Operations
+		PROCESS(inclock, reset)
 		BEGIN
-			 IF reset = '0' THEN
+			IF reset = '0' THEN
 				local_wren_a <= '0';
 				local_wren_b <= '0';
-			 ELSIF rising_edge(inclock) THEN
-				  -- Check for address_a validity
-				  IF unsigned(address_a) > unsigned(MAX_ADDRESS) THEN
-						local_wren_a <= '0';  -- Disable write to RAM for address_a
-				  ELSE
-						local_wren_a <= wren_a;
-				  END IF;
+			ELSIF rising_edge(inclock) THEN
+				-- Check for address_a validity
+				IF unsigned(address_a) <= unsigned(MAX_ADDRESS) THEN
+					local_wren_a <= wren_a;
+				ELSE
+					local_wren_a <= '0'; -- Disable write to RAM for address_a
+				END IF;
 
-				  -- Check for address_b validity
-				  IF unsigned(address_b) > unsigned(MAX_ADDRESS) THEN
-						local_wren_b <= '0';  -- Disable write to RAM for address_b
-				  ELSE
-						local_wren_b <= wren_b;
-				  END IF;
-			 END IF;
+				-- Check for address_b validity
+				IF unsigned(address_b) <= unsigned(MAX_ADDRESS) THEN
+					local_wren_b <= wren_b;
+				ELSE
+					local_wren_b <= '0'; -- Disable write to RAM for address_b
+				END IF;
+			END IF;
 		END PROCESS;
-
-
-
-
 
 
 END behavior;

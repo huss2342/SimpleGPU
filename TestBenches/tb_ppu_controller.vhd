@@ -2,10 +2,10 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-ENTITY ppu_controller_tb IS
-END ppu_controller_tb;
+ENTITY tb_ppu_controller IS
+END tb_ppu_controller;
 
-ARCHITECTURE behavior OF ppu_controller_tb IS
+ARCHITECTURE behavior OF tb_ppu_controller IS
 
     -- Signals for ppu_controller ports
     SIGNAL clk           : STD_LOGIC                      := '0';
