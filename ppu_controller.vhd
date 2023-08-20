@@ -24,13 +24,20 @@ USE ieee.numeric_std.all;
 	END ppu_controller;
 ARCHITECTURE behavior OF ppu_controller IS
 
-	 --------- PPU SIGNALS ---------	
+	 --------- ALU SIGNALS ---------	
     SIGNAL done_signal, start_signal   : STD_LOGIC                      := '0';
     SIGNAL operation                   : STD_LOGIC_VECTOR (7 DOWNTO 0)  := (others => '0');
     SIGNAL input_a         				: STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
     SIGNAL input_b         				: STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
     SIGNAL output_data    					: STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
 	
+	 --------- ALU2 SIGNALS ---------	
+    SIGNAL done_signal2, start_signal2 : STD_LOGIC                      := '0';
+    SIGNAL operation2                  : STD_LOGIC_VECTOR (7 DOWNTO 0)  := (others => '0');
+    SIGNAL input_a2        				: STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    SIGNAL input_b2         				: STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+    SIGNAL output_data2   					: STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+	 
 	 --------- States ---------
 	 
     TYPE state_type IS (IDLE, READ_FROM_MEM, COMPUTE, WRITE_TO_MEM, INCREMENT_INDEXES, COMPLETED);
@@ -51,10 +58,14 @@ ARCHITECTURE behavior OF ppu_controller IS
 	 
 	 --------- memory sections ---------
 		 
-	 SIGNAL index_a : INTEGER RANGE SECTION_A_START TO SECTION_A_END := SECTION_A_START;
-	 SIGNAL index_b : INTEGER RANGE SECTION_B_START TO SECTION_B_END := SECTION_B_START;
-	 SIGNAL index_c : INTEGER RANGE SECTION_C_START TO SECTION_C_END := SECTION_C_START;
-  
+	 SIGNAL index_a_even : INTEGER RANGE SECTION_A_START TO SECTION_A_END := SECTION_A_START;
+	 SIGNAL index_b_even : INTEGER RANGE SECTION_B_START TO SECTION_B_END := SECTION_B_START;
+	 SIGNAL index_c_even : INTEGER RANGE SECTION_C_START TO SECTION_C_END := SECTION_C_START;
+
+	 SIGNAL index_a_odd : INTEGER RANGE SECTION_A_START TO SECTION_A_END := SECTION_A_START+1;
+	 SIGNAL index_b_odd : INTEGER RANGE SECTION_B_START TO SECTION_B_END := SECTION_B_START+1;
+	 SIGNAL index_c_odd : INTEGER RANGE SECTION_C_START TO SECTION_C_END := SECTION_C_START+1;
+	 
     component ppu
         PORT (
 			clk          : in  STD_LOGIC;
@@ -87,12 +98,27 @@ BEGIN
 			 start_signal  => start_signal,
 			 done_signal   => done_signal  
 		);
-		 
+		
+		alu2: ppu PORT MAP(
+			 clk           => clk,
+			 reset         => reset,
+			 
+			 operation     => operation2, --will probably be same as `operation` but this allows for flexability
+			 
+			 input_a       => input_a2,
+			 input_b       => input_b2,
+			 output_data   => output_data2,
+			 
+			 start_signal  => start_signal2,
+			 done_signal   => done_signal2
+		);
+	
 		 
 		PROCESS (clk, reset)
 		 variable has_incremented : BOOLEAN := FALSE;
 		BEGIN
 			IF reset = '0' THEN
+				--zeros out the outputs
 				current_state     <= IDLE;
 				next_state        <= IDLE;
 				ppuctl_done       <= '0';
@@ -100,6 +126,7 @@ BEGIN
 				wren_b <= '0';
 				address_a  <= (others => '0');  
 				address_b  <= (others => '0');
+				
 				
 			ELSIF rising_edge(clk) THEN
 			
@@ -109,9 +136,14 @@ BEGIN
 
 						when IDLE =>
 							 IF ppuctl_start = '1' THEN
-								  index_a <= SECTION_A_START;
-								  index_b <= SECTION_B_START;
-								  index_c <= SECTION_C_START;
+								  index_a_even <= SECTION_A_START;
+								  index_b_even <= SECTION_B_START;
+								  index_c_even <= SECTION_C_START;
+								  
+								  index_a_odd <= SECTION_A_START + 1;
+								  index_b_odd <= SECTION_B_START + 1;
+								  index_c_odd <= SECTION_C_START + 1;  
+								  
 								  next_state <= READ_FROM_MEM;
 							 END IF;
 
@@ -121,8 +153,8 @@ BEGIN
 							 wren_b <= '0';
 						
 						    --calculate the addresses and send them to memory as they are connected
-							 address_a <= std_logic_vector(to_unsigned(index_a, address_a'length));
-							 address_b <= std_logic_vector(to_unsigned(index_b, address_b'length));
+							 address_a <= std_logic_vector(to_unsigned(index_a_even, address_a'length));
+							 address_b <= std_logic_vector(to_unsigned(index_b_even, address_b'length));
 							 
 							 --send what is stored there into the ppu
 							 input_a    <= q_a;
@@ -143,8 +175,8 @@ BEGIN
 							 END IF;
 
 							when WRITE_TO_MEM =>
-							 if index_a < SECTION_A_END then
-								  address_a <= std_logic_vector(to_unsigned(index_c, address_a'length));
+							 if index_a_even < SECTION_A_END then
+								  address_a <= std_logic_vector(to_unsigned(index_c_even, address_a'length));
 								  data_a    <= output_data;
 								  wren_a    <= '1';
 
@@ -156,9 +188,9 @@ BEGIN
 
 						when INCREMENT_INDEXES =>
 							 if not has_incremented then
-								  index_a <= index_a + 1;
-								  index_b <= index_b + 1;
-								  index_c <= index_c + 1;
+								  index_a_even <= index_a_even + 1;
+								  index_b_even <= index_b_even + 1;
+								  index_c_even <= index_c_even + 1;
 
 								  has_incremented := TRUE; -- Set the flag to prevent further increment
 							 end if;
