@@ -48,6 +48,7 @@ ARCHITECTURE behavior OF ppu_controller IS
 	 CONSTANT ARRAY_DEPTH     : INTEGER := 1536; -- Corresponds to 3KB with 16-bit words
 	 
 	 CONSTANT SECTION_A_START : INTEGER := 0;
+	 
 	 CONSTANT SECTION_A_END   : INTEGER := 511;
 	 
 	 CONSTANT SECTION_B_START : INTEGER := 512;
@@ -58,13 +59,13 @@ ARCHITECTURE behavior OF ppu_controller IS
 	 
 	 --------- memory sections ---------
 		 
-	 SIGNAL index_a_even : INTEGER RANGE SECTION_A_START TO SECTION_A_END := SECTION_A_START;
-	 SIGNAL index_b_even : INTEGER RANGE SECTION_B_START TO SECTION_B_END := SECTION_B_START;
-	 SIGNAL index_c_even : INTEGER RANGE SECTION_C_START TO SECTION_C_END := SECTION_C_START;
+	 SIGNAL index_a_1 : INTEGER RANGE SECTION_A_START TO SECTION_A_END := SECTION_A_START;
+	 SIGNAL index_b_1 : INTEGER RANGE SECTION_B_START TO SECTION_B_END := SECTION_B_START;
+	 SIGNAL index_c_1 : INTEGER RANGE SECTION_C_START TO SECTION_C_END := SECTION_C_START;
 
-	 SIGNAL index_a_odd : INTEGER RANGE SECTION_A_START TO SECTION_A_END := SECTION_A_START+1;
-	 SIGNAL index_b_odd : INTEGER RANGE SECTION_B_START TO SECTION_B_END := SECTION_B_START+1;
-	 SIGNAL index_c_odd : INTEGER RANGE SECTION_C_START TO SECTION_C_END := SECTION_C_START+1;
+	 SIGNAL index_a_2 : INTEGER RANGE SECTION_A_START TO SECTION_A_END := SECTION_A_START+1;
+	 SIGNAL index_b_2 : INTEGER RANGE SECTION_B_START TO SECTION_B_END := SECTION_B_START+1;
+	 SIGNAL index_c_2 : INTEGER RANGE SECTION_C_START TO SECTION_C_END := SECTION_C_START+1;
 	 
     component ppu
         PORT (
@@ -136,13 +137,10 @@ BEGIN
 
 						when IDLE =>
 							 IF ppuctl_start = '1' THEN
-								  index_a_even <= SECTION_A_START;
-								  index_b_even <= SECTION_B_START;
-								  index_c_even <= SECTION_C_START;
+								  index_a_1 <= SECTION_A_START;
+								  index_b_1 <= SECTION_B_START;
+								  index_c_1 <= SECTION_C_START;
 								  
-								  index_a_odd <= SECTION_A_START + 1;
-								  index_b_odd <= SECTION_B_START + 1;
-								  index_c_odd <= SECTION_C_START + 1;  
 								  
 								  next_state <= READ_FROM_MEM;
 							 END IF;
@@ -153,8 +151,8 @@ BEGIN
 							 wren_b <= '0';
 						
 						    --calculate the addresses and send them to memory as they are connected
-							 address_a <= std_logic_vector(to_unsigned(index_a_even, address_a'length));
-							 address_b <= std_logic_vector(to_unsigned(index_b_even, address_b'length));
+							 address_a <= std_logic_vector(to_unsigned(index_a_1, address_a'length));
+							 address_b <= std_logic_vector(to_unsigned(index_b_1, address_b'length));
 							 
 							 --send what is stored there into the ppu
 							 input_a    <= q_a;
@@ -175,8 +173,8 @@ BEGIN
 							 END IF;
 
 							when WRITE_TO_MEM =>
-							 if index_a_even < SECTION_A_END then
-								  address_a <= std_logic_vector(to_unsigned(index_c_even, address_a'length));
+							 if index_a_1 < SECTION_A_END then
+								  address_a <= std_logic_vector(to_unsigned(index_c_1, address_a'length));
 								  data_a    <= output_data;
 								  wren_a    <= '1';
 
@@ -188,9 +186,9 @@ BEGIN
 
 						when INCREMENT_INDEXES =>
 							 if not has_incremented then
-								  index_a_even <= index_a_even + 1;
-								  index_b_even <= index_b_even + 1;
-								  index_c_even <= index_c_even + 1;
+								  index_a_1 <= index_a_1 + 1;
+								  index_b_1 <= index_b_1 + 1;
+								  index_c_1 <= index_c_1 + 1;
 
 								  has_incremented := TRUE; -- Set the flag to prevent further increment
 							 end if;

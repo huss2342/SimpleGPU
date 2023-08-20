@@ -38,6 +38,7 @@ USE altera_mf.all;
 	);
 	END memory_controller;
 
+	
 ARCHITECTURE behavior OF memory_controller IS
 	 
 	 -- RAM instantiation
@@ -56,43 +57,38 @@ ARCHITECTURE behavior OF memory_controller IS
         );
     END COMPONENT;
 
-	 
-	 
-    -- Address range check for the given example (10-bit address)
-    CONSTANT MAX_ADDRESS : STD_LOGIC_VECTOR(11 DOWNTO 0) := "111111111111";
-
 BEGIN
 
 	  -- RAM instantiation in memory_controller architecture
 	  ram_instance: ram
 		 PORT MAP(
-		     inclock    => inclock,
-			  outclock   => outclock,
-			  
-			  address_a  => mem_address_a,
-			  address_b  => mem_address_b,
-			  data_a     => mem_data_a,
-			  data_b     => mem_data_b,
-			  wren_a     => mem_wren_a, 
-			  wren_b     => mem_wren_b, 
-			  q_a        => mem_q_a,
-			  q_b        => mem_q_b
+		  inclock    => inclock,
+		  outclock   => outclock,
+		  
+		  address_a  => mem_address_a,
+		  address_b  => mem_address_b,
+		  data_a     => mem_data_a,
+		  data_b     => mem_data_b,
+		  wren_a     => mem_wren_a, 
+		  wren_b     => mem_wren_b, 
+		  q_a        => mem_q_a,
+		  q_b        => mem_q_b
 		 );
 
     -- New RAM instantiation
     ram_instance2: ram
         PORT MAP(
-		       inclock    => inclock,
-             outclock   => outclock,
-				 
-             address_a  => mem_address_a2,
-             address_b  => mem_address_b2,
-             data_a     => mem_data_a2,
-             data_b     => mem_data_b2,
-             wren_a     => mem_wren_a2,
-             wren_b     => mem_wren_b2,
-             q_a        => mem_q_a2,
-             q_b        => mem_q_b2
+			 inclock    => inclock,
+			 outclock   => outclock,
+			 
+			 address_a  => mem_address_a2,
+			 address_b  => mem_address_b2,
+			 data_a     => mem_data_a2,
+			 data_b     => mem_data_b2,
+			 wren_a     => mem_wren_a2,
+			 wren_b     => mem_wren_b2,
+			 q_a        => mem_q_a2,
+			 q_b        => mem_q_b2
         );
 
 END behavior;
