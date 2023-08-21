@@ -62,7 +62,9 @@ ARCHITECTURE behavior OF tb_ppu_controller IS
 			 address_a2           : OUT STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
 			 address_b2           : OUT STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
 			 q_a2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-			 q_b2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0')
+			 q_b2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+			 
+			 memory_ready			 : IN STD_LOGIC 							  := '0'
 		);
 	 END COMPONENT;
 	 
@@ -90,7 +92,9 @@ ARCHITECTURE behavior OF tb_ppu_controller IS
 			 mem_wren_a2   : IN STD_LOGIC                      := '0';             
 			 mem_wren_b2   : IN STD_LOGIC                      := '0';             
 			 mem_q_a2      : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0'); 
-			 mem_q_b2      : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0')  
+			 mem_q_b2      : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0');
+			
+			memory_ready   : OUT STD_LOGIC 							:= '0'
 		);
   END COMPONENT;
 
@@ -110,6 +114,8 @@ ARCHITECTURE behavior OF tb_ppu_controller IS
 	SIGNAL ram_address_a2, ram_address_b2 : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
 	SIGNAL ram_data_a2, ram_data_b2       : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 	SIGNAL ram_wren_a2, ram_wren_b2       : STD_LOGIC := '0';
+	
+	SIGNAL memory_ready 						  : STD_LOGIC := '0';
 
 BEGIN
 
@@ -138,7 +144,9 @@ BEGIN
 			address_a2    => int_address_a2,
 			address_b2    => int_address_b2,
 			q_a2          => mem_q_a2,
-			q_b2          => mem_q_b2
+			q_b2          => mem_q_b2,
+			
+			memory_ready => memory_ready
 			);
 
 
@@ -164,7 +172,9 @@ BEGIN
       mem_wren_a2    => mem_wren_a2,
       mem_wren_b2    => mem_wren_b2,
       mem_q_a2       => mem_q_a2,
-      mem_q_b2       => mem_q_b2
+      mem_q_b2       => mem_q_b2,
+		
+		memory_ready   => memory_ready
       );
 
 

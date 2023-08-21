@@ -26,7 +26,9 @@ USE ieee.numeric_std.all;
 			 address_a2           : OUT STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
 			 address_b2           : OUT STD_LOGIC_VECTOR (11 DOWNTO 0) := (others => '0');
 			 q_a2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
-			 q_b2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0')
+			 q_b2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
+			 
+			 memory_ready			 : IN STD_LOGIC 							  := '0'
 		);
 	END ppu_controller;
 ARCHITECTURE behavior OF ppu_controller IS
@@ -47,7 +49,7 @@ ARCHITECTURE behavior OF ppu_controller IS
 	 
 	 --------- States ---------
 	 
-    TYPE state_type IS (IDLE, READ_FROM_MEM, COMPUTE, WRITE_TO_MEM, INCREMENT_INDEXES, COMPLETED);
+    TYPE state_type IS (IDLE, READ_FROM_MEM, WAIT_FOR_MEMORY, COMPUTE, WRITE_TO_MEM, INCREMENT_INDEXES, COMPLETED);
     SIGNAL current_state, next_state: state_type := IDLE;
 	 
 	 --------- memory variables ---------
@@ -174,19 +176,20 @@ BEGIN
 							 address_a2 <= std_logic_vector(to_unsigned(index_a_2, address_a'length));
 							 address_b2 <= std_logic_vector(to_unsigned(index_b_2, address_b'length));
 							 
+							 next_state <= WAIT_FOR_MEMORY;
+						
+						when WAIT_FOR_MEMORY =>
+							if memory_ready = '1' then
+								next_state <= COMPUTE;
+							end if;
 							 
+						when COMPUTE =>
 							 --send what is stored there into the ppu
 							 input_a    <= q_a;
 							 input_b    <= q_b;
 							 
 							 input_a2   <= q_a2;
 							 input_b2   <= q_b2;
-							 
-							 
-							 next_state <= COMPUTE;
-
-							 
-						when COMPUTE =>
 							 --start the computation
 							 operation     <= ppuctl_opcode;
 							 operation2    <= ppuctl_opcode;

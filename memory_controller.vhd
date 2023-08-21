@@ -34,11 +34,14 @@ USE altera_mf.all;
 		 mem_wren_a2   : IN STD_LOGIC                      := '0';             
 		 mem_wren_b2   : IN STD_LOGIC                      := '0';             
 		 mem_q_a2      : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0'); 
-		 mem_q_b2      : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0')  
+		 mem_q_b2      : OUT STD_LOGIC_VECTOR (15 DOWNTO 0):= (others => '0');
+		 
+		 memory_ready  : OUT STD_LOGIC 							:= '0'
 	);
 	END memory_controller;
-
 	
+
+
 ARCHITECTURE behavior OF memory_controller IS
 	 
 	 -- RAM instantiation
@@ -57,6 +60,11 @@ ARCHITECTURE behavior OF memory_controller IS
         );
     END COMPONENT;
 
+	SIGNAL read_request : STD_LOGIC := '0';
+	SIGNAL read_counter : INTEGER := 0;
+	SIGNAL read_delay   : INTEGER := 3; -- Number of cycles to wait for read
+	SIGNAL prev_address_a, prev_address_b, prev_address_a2, prev_address_b2: STD_LOGIC_VECTOR (11 DOWNTO 0);
+	 
 BEGIN
 
 	  -- RAM instantiation in memory_controller architecture
@@ -75,7 +83,7 @@ BEGIN
 		  q_b        => mem_q_b
 		 );
 
-    -- New RAM instantiation
+    -- New RAM instantiation: the second Ram
     ram_instance2: ram
 	  PORT MAP(
 		 inclock    => inclock,
@@ -91,6 +99,45 @@ BEGIN
 		 q_b        => mem_q_b2
 	  );
 
+	process(inclock, reset)
+	begin
+		if reset = '0' then
+			read_request <= '0';
+			read_counter <= 0;
+			memory_ready <= '0';
+			prev_address_a <= (others => '0');
+			prev_address_b <= (others => '0');
+			prev_address_a2 <= (others => '0');
+			prev_address_b2 <= (others => '0');
+		elsif rising_edge(inclock) then
+			-- Logic to detect a read request
+			if (mem_address_a /= prev_address_a) or (mem_address_b /= prev_address_b) or
+				(mem_address_a2 /= prev_address_a2) or (mem_address_b2 /= prev_address_b2) then
+				read_request <= '1';
+				read_counter <= 0; -- Reset counter on new read request
+			end if;
+
+			-- Handle read request
+			if read_request = '1' then
+				if read_counter < read_delay then
+					read_counter <= read_counter + 1;
+					memory_ready <= '0';
+				else
+					memory_ready <= '1';
+					read_request <= '0'; -- Clear read request
+					read_counter <= 0; -- Reset counter
+				end if;
+			end if;
+
+			-- Store previous addresses
+			prev_address_a <= mem_address_a;
+			prev_address_b <= mem_address_b;
+			prev_address_a2 <= mem_address_a2;
+			prev_address_b2 <= mem_address_b2;
+		end if;
+	end process;
+
+	
 END behavior;
 
 
