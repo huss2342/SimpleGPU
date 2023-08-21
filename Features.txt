@@ -26,11 +26,13 @@ Using the Cyclone II DE 2: EP2C35F672C6N
 	
 	write and read activity indicators
 
+	
 [ppu_controller]
 	The ppu_controller is the heart of your GPU. It will manage the distribution of tasks to the 
 	Pixel Processing Units (PPUs), collect results after computation, and might also manage the
 	flow of data between the memory and the PPUs.
 	
+	{writing to both RAMs at the same time (we can then read two different values at a time)}
 	
 	
 	

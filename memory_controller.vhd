@@ -77,19 +77,19 @@ BEGIN
 
     -- New RAM instantiation
     ram_instance2: ram
-        PORT MAP(
-			 inclock    => inclock,
-			 outclock   => outclock,
-			 
-			 address_a  => mem_address_a2,
-			 address_b  => mem_address_b2,
-			 data_a     => mem_data_a2,
-			 data_b     => mem_data_b2,
-			 wren_a     => mem_wren_a2,
-			 wren_b     => mem_wren_b2,
-			 q_a        => mem_q_a2,
-			 q_b        => mem_q_b2
-        );
+	  PORT MAP(
+		 inclock    => inclock,
+		 outclock   => outclock,
+		 
+		 address_a  => mem_address_a2,
+		 address_b  => mem_address_b2,
+		 data_a     => mem_data_a2,
+		 data_b     => mem_data_b2,
+		 wren_a     => mem_wren_a2,
+		 wren_b     => mem_wren_b2,
+		 q_a        => mem_q_a2,
+		 q_b        => mem_q_b2
+	  );
 
 END behavior;
 
