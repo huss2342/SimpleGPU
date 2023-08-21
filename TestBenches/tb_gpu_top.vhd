@@ -1,0 +1,2 @@
+   -- 20ns CLOCK
+   --clk <= not clk after 10 ns;
