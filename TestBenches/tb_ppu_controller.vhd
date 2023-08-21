@@ -18,7 +18,9 @@ ARCHITECTURE behavior OF tb_ppu_controller IS
 	SIGNAL mem_address_a, mem_address_b   : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
 	SIGNAL mem_data_a, mem_data_b         : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 	SIGNAL mem_wren_a, mem_wren_b         : STD_LOGIC := '0';
-	
+	SIGNAL mem_q_a, mem_q_b				     : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
+	SIGNAL mem_q_a2, mem_q_b2             : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
+		
 	SIGNAL mem_address_a2, mem_address_b2 : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
 	SIGNAL mem_data_a2, mem_data_b2       : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 	SIGNAL mem_wren_a2, mem_wren_b2       : STD_LOGIC := '0';
@@ -96,7 +98,7 @@ ARCHITECTURE behavior OF tb_ppu_controller IS
 	SIGNAL int_address_a, int_address_b   : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
 	SIGNAL int_data_a, int_data_b         : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 	SIGNAL int_wren_a, int_wren_b         : STD_LOGIC := '0';
-	
+
 	SIGNAL int_address_a2, int_address_b2 : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
 	SIGNAL int_data_a2, int_data_b2       : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 	SIGNAL int_wren_a2, int_wren_b2       : STD_LOGIC := '0';
@@ -105,7 +107,6 @@ ARCHITECTURE behavior OF tb_ppu_controller IS
 	SIGNAL ram_address_a, ram_address_b   : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
 	SIGNAL ram_data_a, ram_data_b         : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 	SIGNAL ram_wren_a, ram_wren_b         : STD_LOGIC := '0';
-	
 	SIGNAL ram_address_a2, ram_address_b2 : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
 	SIGNAL ram_data_a2, ram_data_b2       : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 	SIGNAL ram_wren_a2, ram_wren_b2       : STD_LOGIC := '0';
@@ -123,55 +124,54 @@ BEGIN
 			ppuctl_start  => ppuctl_start,
 			ppuctl_done   => ppuctl_done,
 			
-			address_a     => int_address_a,  
+			address_a     => int_address_a,
 			address_b     => int_address_b,
 			data_a        => int_data_a,
 			data_b        => int_data_b,
 			wren_a        => int_wren_a,
 			wren_b        => int_wren_b,
-			q_a           => open,
-			q_b           => open,
+			q_a           => mem_q_a,
+			q_b           => mem_q_b,
 			
 			data_a2       => int_data_a2,
 			data_b2       => int_data_b2,
-			address_a2    => int_address_a2,  
+			address_a2    => int_address_a2,
 			address_b2    => int_address_b2,
-			q_a2          => open,
-			q_b2          => open
+			q_a2          => mem_q_a2,
+			q_b2          => mem_q_b2
 			);
 
 
-	-- Instantiate the memory_controller => connecting it to the memory's intermediate signals
+	-- Instantiate the memory_controller => connecting it to the memory signals
 	memory: memory_controller PORT MAP(
-		  inclock        => clk,
-		  outclock       => clk,
-		  reset          => reset,
-		  
-		  mem_address_a  => ram_address_a,
-		  mem_address_b  => ram_address_b,
-		  mem_data_a     => ram_data_a,
-		  mem_data_b     => ram_data_b,
-		  mem_wren_a     => ram_wren_a,
-		  mem_wren_b     => ram_wren_b,
-		  mem_q_a        => open,
-		  mem_q_b        => open,
-		  
-		  mem_address_a2 => ram_address_a2,
-		  mem_address_b2 => ram_address_b2,
-		  mem_data_a2    => ram_data_a2,
-		  mem_data_b2    => ram_data_b2,
-		  mem_wren_a2    => ram_wren_a2,
-		  mem_wren_b2    => ram_wren_b2,
-		  mem_q_a2       => open,
-		  mem_q_b2       => open
-		  );
+      inclock        => clk,
+      outclock       => clk,
+      reset          => reset,
+      
+      mem_address_a  => mem_address_a,
+      mem_address_b  => mem_address_b,
+      mem_data_a     => mem_data_a,
+      mem_data_b     => mem_data_b,
+      mem_wren_a     => mem_wren_a,
+      mem_wren_b     => mem_wren_b,
+      mem_q_a        => mem_q_a,
+      mem_q_b        => mem_q_b,
+      
+      mem_address_a2 => mem_address_a2,
+      mem_address_b2 => mem_address_b2,
+      mem_data_a2    => mem_data_a2,
+      mem_data_b2    => mem_data_b2,
+      mem_wren_a2    => mem_wren_a2,
+      mem_wren_b2    => mem_wren_b2,
+      mem_q_a2       => mem_q_a2,
+      mem_q_b2       => mem_q_b2
+      );
+
 
 			
-	process(clk, reset)
+	process(clk)
 	begin
-		if reset = '0' then
-			-- Reset logic for intermediate signals
-		elsif rising_edge(clk) then
+		if rising_edge(clk) then
 			-- Transfer logic between intermediate signals and memory_controller signals
 			if ram_initialized = '0' then
 				mem_address_a  <= ram_address_a;
@@ -180,28 +180,27 @@ BEGIN
 				mem_data_b     <= ram_data_b;
 				mem_wren_a     <= ram_wren_a;
 				mem_wren_b     <= ram_wren_b;
-				
+
 				mem_address_a2 <= ram_address_a2;
 				mem_address_b2 <= ram_address_b2;
 				mem_data_a2    <= ram_data_a2;
 				mem_data_b2    <= ram_data_b2;
 				mem_wren_a2    <= ram_wren_a2;
 				mem_wren_b2    <= ram_wren_b2;
-				
 			else
-				mem_address_a  <= int_address_a;
-				mem_address_b  <= int_address_b;
-				mem_data_a     <= int_data_a;
-				mem_data_b     <= int_data_b;
-				mem_wren_a     <= int_wren_a;
-				mem_wren_b     <= int_wren_b;
-				
+				mem_address_a <= int_address_a;
+				mem_address_b <= int_address_b;
+				mem_data_a    <= int_data_a;
+				mem_data_b    <= int_data_b;
+				mem_wren_a    <= int_wren_a;
+				mem_wren_b    <= int_wren_b;
+
 				mem_address_a2 <= int_address_a2;
 				mem_address_b2 <= int_address_b2;
 				mem_data_a2    <= int_data_a2;
 				mem_data_b2    <= int_data_b2;
-				mem_wren_a2    <= int_wren_a2;
-				mem_wren_b2    <= int_wren_b2;
+				mem_wren_a2    <= int_wren_a;
+				mem_wren_b2    <= int_wren_b;
 			end if;
 		end if;
 	end process;
@@ -211,10 +210,7 @@ BEGIN
 	RAM_INIT: process(clk, reset)
 	begin
 		  if reset = '0' then
-				 ram_initialized <= '0';
-				 
-				 init_index   <= SECTION_A_START; -- this will go from start -> middle
-				 
+				 ram_initialized <= '0'; 
 				 ram_wren_a <= '0';
 				 ram_wren_b <= '0';
 				 
@@ -225,10 +221,9 @@ BEGIN
 					ram_address_a  <= std_logic_vector(to_unsigned(init_index, ram_address_a'length));
 					ram_address_a2 <= std_logic_vector(to_unsigned(init_index, ram_address_a'length));
 					
-					--ram_data_a    <= std_logic_vector(to_unsigned(init_index, ram_data_a'length)); -- Value is the index itself
-					ram_data_a    <= "0000000000000001";
-					ram_data_a2   <= "0000000000000001";
-					
+					ram_data_a    <= std_logic_vector(to_unsigned(init_index+1, ram_data_a'length)); -- Value is the index itself
+					ram_data_a2   <= std_logic_vector(to_unsigned(init_index+1, ram_data_a'length)); -- Value is the index itself
+	 
 					ram_wren_a    <= '1';
 					ram_wren_a2   <= '1';
 			
@@ -236,10 +231,9 @@ BEGIN
 					ram_address_b  <= std_logic_vector(to_unsigned(init_index + SECTION_B_START, ram_address_b'length));
 					ram_address_b2 <= std_logic_vector(to_unsigned(init_index + SECTION_B_START, ram_address_b2'length));
 
-					--ram_data_b    <= std_logic_vector(to_unsigned(init_index, ram_data_b'length)); -- Value is the index itself
-					ram_data_b    <= "0000000000000010";
-					ram_data_b2   <= "0000000000000010";
-
+					ram_data_b    <= std_logic_vector(to_unsigned(init_index+1, ram_data_b'length)); -- Value is the index itself
+					ram_data_b2   <= std_logic_vector(to_unsigned(init_index+1, ram_data_b'length)); -- Value is the index itself
+					
 					ram_wren_b    <= '1';
 					ram_wren_b2   <= '1';				
 					

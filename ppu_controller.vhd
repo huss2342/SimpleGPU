@@ -180,7 +180,7 @@ BEGIN
 							 input_b    <= q_b;
 							 
 							 input_a2   <= q_a2;
-							 input_b2   <= q_a2;
+							 input_b2   <= q_b2;
 							 
 							 
 							 next_state <= COMPUTE;
