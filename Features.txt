@@ -34,7 +34,11 @@ Using the Cyclone II DE 2: EP2C35F672C6N
 	
 	{writing to both RAMs at the same time (we can then read two different values at a time)}
 	
-	
+	with it having one ALU it used to take 
+	112690 ns
+	to both load the ram then start reading the arrays and add them. now, by adding two elements at a time in parallel it takes
+	76830 ns
+	thats a 31.81 % improvement
 	
 ### IMPROVEMENTS: TODO
 
