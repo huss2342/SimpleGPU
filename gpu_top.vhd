@@ -139,9 +139,9 @@ architecture behavior of gpu_top is
 	SIGNAL memory_ready 						  : STD_LOGIC := '0';
 
 	-- reading from memory states
-	type state_t is (READ_FROM_MEM, WAIT_FOR_MEMORY, DONE);
-	signal current_state : state_t := READ_FROM_MEM;
-	signal next_state : state_t := READ_FROM_MEM;
+	type state_t is (IDLE, READ_FROM_MEM, WAIT_FOR_MEMORY, DONE);
+	signal current_state : state_t := IDLE;
+	signal next_state : state_t := IDLE;
 
 	
 BEGIN
@@ -210,7 +210,7 @@ BEGIN
 	begin
 		if rising_edge(clk) then
 			-- Transfer logic between intermediate signals and memory_controller signals
-			if ram_initialized = '0' then
+			if (ram_initialized = '0' OR ppuctl_done = '1') then
 				mem_address_a  <= ram_address_a;
 				mem_address_b  <= ram_address_b;
 				mem_data_a     <= ram_data_a;
@@ -225,19 +225,19 @@ BEGIN
 				--mem_wren_a2    <= ram_wren_a2;
 				--mem_wren_b2    <= ram_wren_b2;
 			else
-				--mem_address_a <= int_address_a;
+				mem_address_a <= int_address_a;
 				mem_address_b <= int_address_b;
 				mem_data_a    <= int_data_a;
 				mem_data_b    <= int_data_b;
 				mem_wren_a    <= int_wren_a;
 				mem_wren_b    <= int_wren_b;
 
-				mem_address_a2 <= int_address_a2;
-				mem_address_b2 <= int_address_b2;
-				mem_data_a2    <= int_data_a2;
-				mem_data_b2    <= int_data_b2;
-				mem_wren_a2    <= int_wren_a;
-				mem_wren_b2    <= int_wren_b;
+				--mem_address_a2 <= int_address_a2;
+				---mem_address_b2 <= int_address_b2;
+				--mem_data_a2    <= int_data_a2;
+				--mem_data_b2    <= int_data_b2;
+				--mem_wren_a2    <= int_wren_a;
+				--mem_wren_b2    <= int_wren_b;
 			end if;
 		end if;
 	end process;
@@ -251,7 +251,7 @@ BEGIN
 			  ram_wren_a <= '0';
 			  ram_wren_b <= '0';
 			  init_index <= SECTION_A_START;
-		 elsif rising_edge(clk) and ram_initialized = '0' then
+		 elsif rising_edge(clk) AND ram_initialized = '0' then
 			  if init_index <= array_t'LENGTH-1 then --it will iterate til the end of the array
 
 					-- Writing to Section A
@@ -282,7 +282,7 @@ BEGIN
 			  ppuctl_start <= '0';
 			  started := false;
 		 elsif rising_edge(clk) then
-			  if ram_initialized = '1' and not started then
+			  if ram_initialized = '1' AND not started and ppuctl_done = '0'  then
 					ppuctl_opcode <= "00000000";
 					ppuctl_start <= '1';
 					started := true;
@@ -297,24 +297,30 @@ BEGIN
 -- Read the Result from Memory (Section C) and Send the Result
 
 	process(clk, reset) 
-		variable cindex : integer := init_cindex; -- cindex to read the result from memory
+		variable cindex : integer := init_cindex; -- cindex to read the result from memory 1024
 	begin
 		if reset = '0' then
 			cindex := init_cindex; 
 			gpu_result_done <= '0';
-			current_state   <= READ_FROM_MEM;
-			next_state      <= READ_FROM_MEM;
+			current_state   <= IDLE;
+			next_state      <= IDLE;
 		elsif rising_edge(clk) then
 
-			if ppuctl_done = '1' AND ram_initialized = '1'then
+			if ppuctl_done = '1' AND ram_initialized = '1' then
 				
 				case current_state is
-					
+					when IDLE =>
+							if start = '1' then
+							next_state <= READ_FROM_MEM; 
+							else
+
+
 					when READ_FROM_MEM =>
 
 						-- THIS IS READING FROM MEAMORY SEQUENTIALLY, I COULD UPDATE IT TO READ IN PARALLEL LATER
 						-- Calculate the addresses and send them to memory as they are connected
-						int_address_a  <= std_logic_vector(to_unsigned(cindex, int_address_a'length));
+						
+						--ram_address_a  <= std_logic_vector(to_unsigned(cindex, int_address_a'length));
 						--address_b  <= std_logic_vector(to_unsigned(cindex, address_b'length));
 
 						next_state <= WAIT_FOR_MEMORY;
@@ -337,7 +343,7 @@ BEGIN
 						if start = '1' then
 							next_state <= READ_FROM_MEM; -- Transition back to READ_FROM_MEM
 						else
-							next_state <= DONE; -- Stay in DONE state
+							next_state <= IDLE; -- Stay in DONE state
 						end if;
 						
 					when others => 
