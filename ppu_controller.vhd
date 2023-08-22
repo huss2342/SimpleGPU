@@ -28,7 +28,8 @@ USE ieee.numeric_std.all;
 			 q_a2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
 			 q_b2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
 			 
-			 memory_ready			 : IN STD_LOGIC 							  := '0'
+			 memory_ready			 : IN STD_LOGIC 							  := '0';
+			 elements_length 		 : IN STD_LOGIC_VECTOR (11 downto 0)  := (others => '0')  -- tells it how many elements are being sent to it in each input array
 		);
 	END ppu_controller;
 ARCHITECTURE behavior OF ppu_controller IS
@@ -128,6 +129,7 @@ BEGIN
 		 
 		PROCESS (clk, reset)
 		variable has_incremented : BOOLEAN := FALSE;
+		variable counter         : STD_LOGIC_VECTOR (11 downto 0) := (others => '0');
 		BEGIN
 			IF reset = '0' THEN
 				--zeros out the outputs
@@ -206,7 +208,7 @@ BEGIN
 							 END IF;
 
 							when WRITE_TO_MEM =>
-							 if (index_a_1 < (SECTION_A_MIDDLE-1) OR index_a_2 < (SECTION_A_END) ) then --if it's still within the range
+							 if (unsigned(counter) < unsigned(elements_length)) AND (index_a_1 < (SECTION_A_MIDDLE-1) OR index_a_2 < (SECTION_A_END) ) then --if it's still within the range / there are elements there
 							 
 								  address_a  <= std_logic_vector(to_unsigned(index_c_1, address_a'length));
 								  address_b  <= std_logic_vector(to_unsigned(index_c_2, address_a'length));
@@ -232,7 +234,8 @@ BEGIN
 
 						when INCREMENT_INDEXES =>
 							 if not has_incremented then
-							 
+								  counter := std_logic_vector(unsigned(counter) + 1);
+								  
 								  if index_a_1 < SECTION_A_MIDDLE-1 then
 										index_a_1 <= index_a_1 + 1;
 								  end if;

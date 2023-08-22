@@ -1,25 +1,28 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
-
+use work.gpu_pkg.all; --array_t
+ 
 entity gpu_top is
     Port (
         clk             : in  STD_LOGIC;
         reset           : in  STD_LOGIC := '1';
+        start           : in  STD_LOGIC;
+        input_array_a   : in  array_t := (others => (others => '0')); -- {ONLY TESTING A FEW ELEMENTS FOR NOW} 512 elements, each 16 bytes
+        input_array_b   : in  array_t := (others => (others => '0'));
+        operation_code  : in  STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
+		  result_array    : out array_t := (others => (others => '0'));
 		  
-		  start 				: in  STD_LOGIC;
-        input_array_a   : in  STD_LOGIC_VECTOR(15 downto 0) array (0 to 511) := (others => (others => '0')); -- 512 emlements, each 16 bytes
-        input_array_b   : in  STD_LOGIC_VECTOR(15 downto 0) array (0 to 511) := (others => (others => '0'));
-        operation_code  : in  STD_LOGIC_VECTOR(7 downto 0) 						  := (others => '0');
-        
-		  result_array    : out STD_LOGIC_VECTOR(15 downto 0) array (0 to 511) := (others => '0');
-        gpu_top_done    : out STD_LOGIC;
-		  operation_done  : out STD_LOGIC
+        gpu_top_done    : out STD_LOGIC := '0';
+		  gpu_result_done : out STD_LOGIC := '0';
+		  elements_length : IN STD_LOGIC_VECTOR (11 downto 0) := std_logic_vector(to_unsigned(array_t'length, 12))
     );
 end entity gpu_top;
 
 architecture behavior of gpu_top is
+	--SIGNAL elements_lengthSIGNAL : INTEGER := array_t'length;
+	
 -- Signals for ppu_controller ports
    SIGNAL ppuctl_opcode : STD_LOGIC_VECTOR(7 DOWNTO 0)   := (others => '0');
    SIGNAL ppuctl_start  : STD_LOGIC                      := '0';
@@ -51,6 +54,8 @@ architecture behavior of gpu_top is
 	CONSTANT SECTION_C_START  : INTEGER := 1024;
 	CONSTANT SECTION_C_END    : INTEGER := 1535;
 	
+	CONSTANT init_cindex      : INTEGER := SECTION_C_START;
+	
 	signal   init_index       : INTEGER := SECTION_A_START;	 
 	 
 -- Instantiate the ppu_controller
@@ -79,7 +84,8 @@ architecture behavior of gpu_top is
 			 q_a2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
 			 q_b2                 : IN  STD_LOGIC_VECTOR (15 DOWNTO 0) := (others => '0');
 			 
-			 memory_ready			 : IN STD_LOGIC 							  := '0'
+			 memory_ready			 : IN STD_LOGIC 							  := '0';
+			 elements_length 		 : IN STD_LOGIC_VECTOR (11 downto 0)  := (others => '0') 
 		);
 	 END COMPONENT;
 	 
@@ -126,12 +132,18 @@ architecture behavior of gpu_top is
 	SIGNAL ram_address_a, ram_address_b   : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
 	SIGNAL ram_data_a, ram_data_b         : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
 	SIGNAL ram_wren_a, ram_wren_b         : STD_LOGIC := '0';
-	SIGNAL ram_address_a2, ram_address_b2 : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
-	SIGNAL ram_data_a2, ram_data_b2       : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
-	SIGNAL ram_wren_a2, ram_wren_b2       : STD_LOGIC := '0';
+	--SIGNAL ram_address_a2, ram_address_b2 : STD_LOGIC_VECTOR(11 DOWNTO 0) := (others => '0');
+	--SIGNAL ram_data_a2, ram_data_b2       : STD_LOGIC_VECTOR(15 DOWNTO 0) := (others => '0');
+	--SIGNAL ram_wren_a2, ram_wren_b2       : STD_LOGIC := '0';
 	
 	SIGNAL memory_ready 						  : STD_LOGIC := '0';
 
+	-- reading from memory states
+	type state_t is (READ_FROM_MEM, WAIT_FOR_MEMORY, DONE);
+	signal current_state : state_t := READ_FROM_MEM;
+	signal next_state : state_t := READ_FROM_MEM;
+
+	
 BEGIN
 
 
@@ -160,7 +172,8 @@ BEGIN
 			q_a2          => mem_q_a2,
 			q_b2          => mem_q_b2,
 			
-			memory_ready => memory_ready
+			memory_ready => memory_ready,
+			elements_length => elements_length
 			);
 
 
@@ -205,14 +218,14 @@ BEGIN
 				mem_wren_a     <= ram_wren_a;
 				mem_wren_b     <= ram_wren_b;
 
-				mem_address_a2 <= ram_address_a2;
-				mem_address_b2 <= ram_address_b2;
-				mem_data_a2    <= ram_data_a2;
-				mem_data_b2    <= ram_data_b2;
-				mem_wren_a2    <= ram_wren_a2;
-				mem_wren_b2    <= ram_wren_b2;
+				--mem_address_a2 <= ram_address_a2;
+				--mem_address_b2 <= ram_address_b2;
+				--mem_data_a2    <= ram_data_a2;
+				--mem_data_b2    <= ram_data_b2;
+				--mem_wren_a2    <= ram_wren_a2;
+				--mem_wren_b2    <= ram_wren_b2;
 			else
-				mem_address_a <= int_address_a;
+				--mem_address_a <= int_address_a;
 				mem_address_b <= int_address_b;
 				mem_data_a    <= int_data_a;
 				mem_data_b    <= int_data_b;
@@ -231,15 +244,15 @@ BEGIN
 
 
 	-- INITIALIZING THE RAM
-	RAM_INIT: process(clk, reset)
+	RAM_INIT: process(clk, reset) 
 	begin
 		 if reset = '0' then
 			  ram_initialized <= '0'; 
 			  ram_wren_a <= '0';
 			  ram_wren_b <= '0';
 			  init_index <= SECTION_A_START;
-		 elsif rising_edge(clk) and ram_initialized = '0' and start = '1' then
-			  if init_index <= SECTION_A_END then
+		 elsif rising_edge(clk) and ram_initialized = '0' then
+			  if init_index <= array_t'LENGTH-1 then --it will iterate til the end of the array
 
 					-- Writing to Section A
 					ram_address_a <= std_logic_vector(to_unsigned(init_index, ram_address_a'length));
@@ -274,26 +287,69 @@ BEGIN
 					ppuctl_start <= '1';
 					started := true;
 			  elsif ppuctl_done = '1' then
+					gpu_top_done <= '1';
 					ppuctl_start <= '0';
 					started := false;
 			  end if;
 		 end if;
 	end process;
 	
-   -- Read the Result from Memory (Section C) and Send the Result
-   -- THIS WILL BE DONE LATER AFTER MAKING THE ETHERNET INTERFACE TO SEND THE DATA BACK TO A C PROGRAM
-	
-	--process(clk, reset)
-   -- begin
-   --    if reset = '0' then
-   --        -- Reset logic here...
-   --    elsif rising_edge(clk) then
-   --       if ppuctl_done = '1' then
-   -- 			Read the result from memory (Section C)
-   -- 			Assign result to result_array
-   --           operation_done <= '1';
-   --         end if;
-   --    end if;
-   -- end process;
+-- Read the Result from Memory (Section C) and Send the Result
+
+	process(clk, reset) 
+		variable cindex : integer := init_cindex; -- cindex to read the result from memory
+	begin
+		if reset = '0' then
+			cindex := init_cindex; 
+			gpu_result_done <= '0';
+			current_state   <= READ_FROM_MEM;
+			next_state      <= READ_FROM_MEM;
+		elsif rising_edge(clk) then
+
+			if ppuctl_done = '1' AND ram_initialized = '1'then
+				
+				case current_state is
+					
+					when READ_FROM_MEM =>
+
+						-- THIS IS READING FROM MEAMORY SEQUENTIALLY, I COULD UPDATE IT TO READ IN PARALLEL LATER
+						-- Calculate the addresses and send them to memory as they are connected
+						int_address_a  <= std_logic_vector(to_unsigned(cindex, int_address_a'length));
+						--address_b  <= std_logic_vector(to_unsigned(cindex, address_b'length));
+
+						next_state <= WAIT_FOR_MEMORY;
+
+					when WAIT_FOR_MEMORY =>
+						if memory_ready = '1' then
+							-- Read the result from memory and assign it to result_array
+							result_array(cindex-init_cindex) <= mem_q_a; -- Assuming data_from_memory is the output from memory
+							cindex := cindex + 1;
+							if cindex < array_t'LENGTH-1 then -- the result will be as long as the input array
+								next_state <= READ_FROM_MEM; -- Read the next value
+							else
+								next_state <= DONE;
+							end if;
+						end if;
+						
+					when DONE =>
+						gpu_result_done <= '1'; -- All results have been read
+						cindex := init_cindex;
+						if start = '1' then
+							next_state <= READ_FROM_MEM; -- Transition back to READ_FROM_MEM
+						else
+							next_state <= DONE; -- Stay in DONE state
+						end if;
+						
+					when others => 
+						gpu_result_done <= '0'; 
+						
+				end case;
+				
+			end if;
+			
+			current_state <= next_state;
+		end if;
+	end process;
+
 
 end architecture behavior;
