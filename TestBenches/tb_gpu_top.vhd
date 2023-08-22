@@ -56,14 +56,18 @@ begin
     stim_proc: process
     begin
         -- Initialize input arrays
-		  input_array_a(0) <= std_logic_vector(to_unsigned(53, 16)); 
-		  input_array_a(1) <= std_logic_vector(to_unsigned(20, 16)); 
+		  input_array_a(0) <= std_logic_vector(to_unsigned(14, 16)); 
+		  input_array_a(1) <= std_logic_vector(to_unsigned(30, 16));
+		  input_array_a(2) <= std_logic_vector(to_unsigned(40, 16));
         -- The rest of the elements in input_array_a are initialized to zero by default
 
-        input_array_b(0) <= std_logic_vector(to_unsigned(16, 16));
-		  input_array_b(1) <= std_logic_vector(to_unsigned(400, 16)); 
+        input_array_b(0) <= std_logic_vector(to_unsigned(88, 16));
+		  input_array_b(1) <= std_logic_vector(to_unsigned(21, 16));
+		  input_array_b(2) <= std_logic_vector(to_unsigned(33, 16));
+		  input_array_b(4) <= std_logic_vector(to_unsigned(66, 16));
         -- The rest of the elements in input_array_b are initialized to zero by default
 
+		  operation_code <= "00000000";
         -- Start initialization by asserting the start signal
         start <= '1';
         wait for 10 ns;

@@ -21,7 +21,8 @@ entity gpu_top is
 end entity gpu_top;
 
 architecture behavior of gpu_top is
-	--SIGNAL elements_lengthSIGNAL : INTEGER := array_t'length;
+--gpu signals to clock {TODO: ADD MORE}
+   SIGNAL REG_gpu_result_done : STD_LOGIC := '0';
 	
 -- Signals for ppu_controller ports
    SIGNAL ppuctl_opcode : STD_LOGIC_VECTOR(7 DOWNTO 0)   := (others => '0');
@@ -207,6 +208,7 @@ BEGIN
 	process(clk)
 	begin
 		if rising_edge(clk) then
+		gpu_result_done <= REG_gpu_result_done;
 			-- Transfer logic between intermediate signals and memory_controller signals
 			if (ram_initialized = '0' OR ppuctl_done = '1') then
 				--speaking directly to ram--
@@ -291,6 +293,8 @@ begin
 				if init_index <= array_t'LENGTH-1 then
 					-- this will iterate and write the input array to memory
 					
+					REG_gpu_result_done <= '0';
+					
 					-- Writing to Section A
 					ram_address_a <= std_logic_vector(to_unsigned(init_index, ram_address_a'length));
 					--I DO NOT WRITE TO THE SECOND RAM, THIS IS A SEQUENTIAL TEST, SINCE THE ARRAY IS SMALL ANYWAYS****************** 
@@ -346,7 +350,14 @@ begin
 			when WAIT_FOR_MEMORY =>
 				-- This will wait for the memory to take in the input address and switch the output to what is correctly stored there
 				-- we have to wait a little bit just to be safe since it seems like memory takes a bit longer than expected to switch its output
-				if memory_ready = '1' and sent_to_mem = false then
+				
+				--this case is to catch a weird edge case that happens at the end of the code
+				if REG_gpu_result_done = '1' then
+					next_state <= IDLE;
+					current_state <= IDLE;
+				
+				--this is the regular case that will usually take place
+				elsif memory_ready = '1' AND sent_to_mem = false then
 					if out_index < array_t'LENGTH then
 						result_array(out_index) <= mem_q_a;
 						out_index := out_index + 1;
@@ -362,7 +373,7 @@ begin
 				end if;
 				
 			when DONE =>
-				gpu_result_done <= '1'; -- all the results have been read
+				REG_gpu_result_done <= '1'; -- all the results have been read
 				out_index := 0;  --resetting the index
 				
 				if start = '1' then
