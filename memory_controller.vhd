@@ -127,6 +127,8 @@ BEGIN
 					read_request <= '0'; -- Clear read request
 					read_counter <= 0; -- Reset counter
 				end if;
+			else
+				memory_ready <= '0';
 			end if;
 
 			-- Store previous addresses
