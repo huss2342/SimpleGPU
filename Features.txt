@@ -137,3 +137,36 @@ gpu_top:
    |    VGA Controller  +<---->+     Memory Ctrl    |
    |                    |      |                    |
    +--------------------+      +--------------------+
+	POSSIBLE ETHERNET CONNECTIONS
+	
+	 ENET_DATA to gm_rx_d/gm_tx_d (depending on the configuration).
+    ENET_CLK to rx_clk/tx_clk (or separate pins if there are distinct clocks for receive and transmit).
+    ENET_RD_N to the read signal.
+    ENET_WR_N to the write signal.
+    ENET_RST_N to the reset signal.
+	
+	Here's a mapping of some of these pins to their likely functions within the Ethernet interface:
+
+    ENET_DATA[0] to ENET_DATA[15]: These 16 pins are likely related to the data lines of the Ethernet interface. They might correspond to the GMII/MII data signals (gm_rx_d, gm_tx_d) depending on your configuration (8-bit for MII, 16-bit for GMII).
+    ENET_CLK: This could be the Ethernet clock signal, possibly used for both transmit and receive, or there might be separate transmit and receive clocks.
+    ENET_CMD: This could be a command signal for the Ethernet interface, although it's unclear without further documentation what specific command(s) it controls.
+    ENET_CS_N: Chip select signal, usually used to enable a specific device on a shared bus.
+    ENET_INT: This is likely an interrupt signal from the Ethernet PHY to the FPGA, used to signal events like packet reception.
+    ENET_RD_N and ENET_WR_N: Read and write control signals, possibly related to the control interface for reading and writing configuration registers.
+    ENET_RST_N: Reset signal for the Ethernet interface.
+
+These are general interpretations based on common naming conventions. The exact functions of these pins would be defined in the documentation for the Ethernet PHY on your board or in the reference manual of the board itself.
+
+To make the correct connections in your design, you would need to align these pins with the signals in the generated Ethernet VHDL file. Here's a hypothetical mapping:
+
+    ENET_DATA to gm_rx_d/gm_tx_d (depending on the configuration).
+    ENET_CLK to rx_clk/tx_clk (or separate pins if there are distinct clocks for receive and transmit).
+    ENET_RD_N to the read signal.
+    ENET_WR_N to the write signal.
+    ENET_RST_N to the reset signal.
+
+Please note that this mapping is hypothetical and should be verified with the board's documentation and the specific
+ configuration of the Ethernet core in your design. Make sure to consult the board's reference manual and 
+the documentation of the Ethernet IP core you are using for accurate information.
+
+send and receive data using a UDP connection through the ethernet
