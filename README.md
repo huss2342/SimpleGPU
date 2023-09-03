@@ -54,7 +54,8 @@ Simulation results and waveforms from these testbenches can be found in the prov
 - **PPU**:
   - Implement comparison operations such as EQ, NEQ, GT, LT, GTE, LTE.
   - GPU-specific operations like clamping, interpolation, dot product, and cross product.
-
+  - Improve the way that arrays are stored.
+	
 ---
 
 This README provides a comprehensive overview of the Simple PPU project.
