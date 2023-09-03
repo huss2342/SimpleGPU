@@ -3,7 +3,7 @@
 
 ## Project Overview
 
-The Simple PPU project is a VHDL-based FPGA implementation that aims to utilize parallel processing capabilities by employing 2 ALUs in parallel to make a simple PPU.
+The Simple PPU project is a VHDL-based FPGA implementation that aims to utilize parallel processing capabilities by employing 2 ALUs in parallel to make a simple PPU. Screenshots_Simulation are included for demonstration of some of the results.
 
 ## Performance Improvements
 
