@@ -59,6 +59,3 @@ Simulation results and waveforms from these testbenches can be found in the prov
   - Improve the way that arrays are stored.
 	
 ---
-
-This README provides a comprehensive overview of the Simple PPU project.
-
