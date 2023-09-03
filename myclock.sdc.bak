@@ -1,0 +1,1 @@
+clk -period 20 [get_ports clk]  # for a 50 MHz clock
