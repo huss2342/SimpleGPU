@@ -5,6 +5,8 @@
 !/TestBenches/
 !/TestBenches/*
 !/TestBenches/**/*
+!/Screenshots_Simulation/*
+!/Screenshots_Simulation/
 
 !*.vhd
 !*.sdc
