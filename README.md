@@ -38,6 +38,8 @@ Simulation results and waveforms from these testbenches can be found in the prov
   - Basic ALU structure.
 - **Memory Controller**:
   - Utilizes dual-port RAM for simultaneous read/write operations on two different addresses.
+  - Memory can hold up to 512 elements of 2 Byte size per each memory section.
+  - Memory is divided into 3 main sections, A,B and C. Where C is the result of the operation done on A and B.
 - **PPU Controller**:
   - Supports writing to both RAMs simultaneously.
 
